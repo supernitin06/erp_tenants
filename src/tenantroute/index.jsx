@@ -28,8 +28,7 @@ const router = createBrowserRouter([
                         index: true,
                         element: <Dashboard />,
                     },
-                    ...schoolRoutes,
-                    ...hospitalRoutes,
+
                     {
                         path: 'plan-history',
                         element: <PlanHistory />,
@@ -37,6 +36,14 @@ const router = createBrowserRouter([
                     {
                         path: 'pricing',
                         element: <Pricing />,
+                    },
+
+                    {
+                        path: ':domainName',
+                        children: [
+                            ...schoolRoutes,
+                            ...hospitalRoutes,
+                        ]
                     },
                 ],
             },
