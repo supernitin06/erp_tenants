@@ -34,6 +34,10 @@ const schoolRoutes = [
             </div>
         ),
     },
+    {
+        path: 'library',
+        element: <Library />,
+    }
 ];
 
 export default schoolRoutes;
