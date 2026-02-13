@@ -1,14 +1,19 @@
-
 import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/authcontext';
+import { useGetSubscriptionHistoryQuery } from '../../api/services/planapi'; // adjust path
 
-const PlanHistory = () => {
-    // Mock data for history
-    const history = [
-        { id: 1, plan: 'Enterprise Plan', date: '2025-10-15', status: 'Expired', amount: '$299' },
-        { id: 2, plan: 'Pro Plan', date: '2024-09-10', status: 'Active', amount: '$149' },
-        { id: 3, plan: 'Basic Plan', date: '2023-08-01', status: 'Expired', amount: '$49' },
-    ];
+const PlanHistory = ({ tenantId }) => {
+    const { tenantName } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    // Fetch history from API
+    const { data: history = [], isLoading, isError } = useGetSubscriptionHistoryQuery(tenantId || user?.id);
+
+    if (isLoading) return <div className="text-center text-white py-20">Loading subscription history...</div>;
+    if (isError) return <div className="text-center text-red-500 py-20">Failed to load subscription history.</div>;
+    if (!history.length) return <div className="text-center text-white py-20">No subscription history available.</div>;
 
     return (
         <div className="min-h-screen bg-[#0B1120] text-white p-8">
@@ -52,16 +57,16 @@ const PlanHistory = () => {
                                         className="hover:bg-slate-800/30 transition-colors group"
                                     >
                                         <td className="p-6 font-medium text-white group-hover:text-cyan-400 transition-colors">
-                                            {item.plan}
+                                            {item.planName}
                                         </td>
                                         <td className="p-6 text-slate-400">
-                                            {item.date}
+                                            {item.startDate}
                                         </td>
                                         <td className="p-6 text-slate-300 font-mono">
-                                            {item.amount}
+                                            ${item.amount}
                                         </td>
                                         <td className="p-6">
-                                            <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border ${item.status === 'Active'
+                                            <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border ${item.status === 'active'
                                                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                                                     : 'bg-slate-700/30 text-slate-400 border-slate-600/30'
                                                 }`}>
@@ -69,12 +74,22 @@ const PlanHistory = () => {
                                             </span>
                                         </td>
                                         <td className="p-6">
-                                            <button className="text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2 transition-colors">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                PDF
-                                            </button>
+                                            <div className="flex items-center gap-4">
+                                                <button className="text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2 transition-colors">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    PDF
+                                                </button>
+                                                {item.status !== 'active' && (
+                                                    <button
+                                                        onClick={() => navigate(`/${tenantName}/pricing`)}
+                                                        className="text-emerald-400 hover:text-emerald-300 font-medium text-sm flex items-center gap-2 transition-colors"
+                                                    >
+                                                        Renew
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </motion.tr>
                                 ))}
