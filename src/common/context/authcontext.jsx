@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useVerifySessionQuery } from '../../api/services/authapi';
 
 const AuthContext = createContext();
 
@@ -10,6 +11,21 @@ export const AuthProvider = ({ children }) => {
     const [tenantName, setTenantName] = useState(localStorage.getItem('tenantName') || null);
     const [token, setToken] = useState(localStorage.getItem('token') || null);
     const [planId, setPlanId] = useState(localStorage.getItem('planId') || null);
+
+    // Verify session on mount or token change
+    const { data: verifiedUser, isSuccess } = useVerifySessionQuery(undefined, {
+        skip: !token, // Only run if we have a token (or change logic if needed)
+    });
+
+    useEffect(() => {
+        if (isSuccess && verifiedUser) {
+            // Update state with fresh data from backend
+            setUser(verifiedUser.user || verifiedUser); // Adjust based on backend response shape
+            // If response includes updated tenantName/planId, update those too
+            if (verifiedUser.tenantName) setTenantName(verifiedUser.tenantName);
+            if (verifiedUser.planId) setPlanId(verifiedUser.planId);
+        }
+    }, [isSuccess, verifiedUser]);
 
     const login = (userData) => {
         setUser(userData.user);
