@@ -13,9 +13,8 @@ export const AuthProvider = ({ children }) => {
     const [planId, setPlanId] = useState(localStorage.getItem('planId') || null);
 
     // Verify session on mount or token change
-    const { data: verifiedUser, isSuccess } = useVerifySessionQuery(undefined, {
-        skip: true, // skipped temporarily to stop 404 until backend endpoint exists
-    });
+    // Verify session on mount
+    const { data: verifiedUser, isSuccess, isLoading: isVerifying } = useVerifySessionQuery();
 
     useEffect(() => {
         if (isSuccess && verifiedUser) {
@@ -52,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, tenantName, token, planId, login, logout }}>
+        <AuthContext.Provider value={{ user, tenantName, token, planId, login, logout, loading: isVerifying }}>
             {children}
         </AuthContext.Provider>
     );
