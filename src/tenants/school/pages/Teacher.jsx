@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  FiUsers, 
-  FiBookOpen, 
-  FiClock, 
+import {
+  FiUsers,
+  FiBookOpen,
+  FiClock,
   FiAward,
   FiSearch,
   FiFilter,
@@ -23,11 +23,11 @@ import {
   FiUpload,
   FiUserPlus
 } from 'react-icons/fi';
-import { 
-  useGetTeachersQuery, 
-  useCreateTeacherMutation, 
-  useUpdateTeacherMutation, 
-  useDeleteTeacherMutation 
+import {
+  useGetTeachersQuery,
+  useCreateTeacherMutation,
+  useUpdateTeacherMutation,
+  useDeleteTeacherMutation
 } from '../api/schoolApi';
 
 // Teacher Form Modal Component
@@ -126,7 +126,7 @@ const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
             {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white mb-4">Personal Information</h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-2">Full Name *</label>
                 <input
@@ -182,7 +182,7 @@ const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
             {/* Professional Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white mb-4">Professional Information</h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-2">Department *</label>
                 <select
@@ -470,7 +470,6 @@ const TeacherManagement = () => {
   const [updateTeacher] = useUpdateTeacherMutation();
   const [deleteTeacher] = useDeleteTeacherMutation();
 
-  const [filteredTeachers, setFilteredTeachers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -481,9 +480,9 @@ const TeacherManagement = () => {
   const [formMode, setFormMode] = useState('add');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter teachers based on search, department, and status
-  useEffect(() => {
-    let filtered = teachers;
+  // Filter teachers using useMemo (prevents render loops)
+  const filteredTeachers = React.useMemo(() => {
+    let filtered = teachers || [];
 
     if (searchTerm) {
       filtered = filtered.filter(teacher =>
@@ -502,8 +501,8 @@ const TeacherManagement = () => {
       filtered = filtered.filter(teacher => teacher.status === selectedStatus);
     }
 
-    setFilteredTeachers(filtered);
-  }, [searchTerm, selectedDepartment, selectedStatus, teachers]);
+    return filtered;
+  }, [teachers, searchTerm, selectedDepartment, selectedStatus]);
 
   const handleAddTeacher = async (newTeacher) => {
     try {
