@@ -1,6 +1,5 @@
 
 import Student from './pages/Student';
-import Teacher from './pages/Teacher';
 import Library from './pages/Library';
 import ExamDatesheet from './pages/ExamDatesheet';
 import ExamResult from './pages/ExamResult';
