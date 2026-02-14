@@ -7,7 +7,14 @@ import {
     ChevronDownIcon,
     ChevronRightIcon,
     BuildingOfficeIcon,
-    XMarkIcon // Naya icon band karne ke liye
+    XMarkIcon,
+    ClipboardDocumentCheckIcon,
+    BookOpenIcon,
+    UserGroupIcon,
+    CurrencyDollarIcon,
+    BanknotesIcon,
+    TruckIcon,
+    BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 import { useGetdomainQuery } from '../../api/services/domainapi';
 import { useAuth } from '../context/authcontext';
@@ -29,6 +36,13 @@ const Sidebar = ({ closeSidebar }) => { // closeSidebar prop Layout se aayega
         const name = domainName?.toUpperCase();
         if (name?.includes('ACADEMIC')) return <AcademicCapIcon className="w-5 h-5" />;
         if (name?.includes('HOSPITAL')) return <BuildingOfficeIcon className="w-5 h-5" />;
+        if (name?.includes('EXAMINATION')) return <ClipboardDocumentCheckIcon className="w-5 h-5" />;
+        if (name?.includes('LIBRARY')) return <BookOpenIcon className="w-5 h-5" />;
+        if (name?.includes('CLASS')) return <UserGroupIcon className="w-5 h-5" />;
+        if (name?.includes('SALARY') || name?.includes('PAYROLL')) return <CurrencyDollarIcon className="w-5 h-5" />;
+        if (name?.includes('FEE') || name?.includes('FINANCE')) return <BanknotesIcon className="w-5 h-5" />;
+        if (name?.includes('TRANSPORT')) return <TruckIcon className="w-5 h-5" />;
+        if (name?.includes('HOSTEL')) return <BuildingLibraryIcon className="w-5 h-5" />;
         return <Squares2X2Icon className="w-5 h-5" />;
     };
 
