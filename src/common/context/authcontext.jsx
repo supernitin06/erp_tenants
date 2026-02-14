@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 
     // Verify session on mount or token change
     const { data: verifiedUser, isSuccess } = useVerifySessionQuery(undefined, {
-        skip: !token, // Only run if we have a token (or change logic if needed)
+        skip: true, // skipped temporarily to stop 404 until backend endpoint exists
     });
 
     useEffect(() => {

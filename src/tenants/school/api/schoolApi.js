@@ -3,17 +3,17 @@ import { apiSlice } from '../../../api/apiSlice';
 export const schoolApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getTeachers: builder.query({
-            query: (tenantName) => `tenant/${tenantName}/teachers`,
+            query: (tenantName) => `tenant/${tenantName}/teachers/list`,
             providesTags: ['Teacher'],
-            transformResponse: (response) => response?.data || response || [],
+            transformResponse: (response) => response?.teachers || [],
         }),
         getTeacher: builder.query({
-            query: ({ tenantName, id }) => `tenant/${tenantName}/teachers/${id}`,
+            query: ({ tenantName, id }) => `tenant/${tenantName}/teachers/details/${id}`,
             providesTags: (result, error, arg) => [{ type: 'Teacher', id: arg.id }],
         }),
         createTeacher: builder.mutation({
             query: ({ tenantName, data }) => ({
-                url: `tenant/${tenantName}/teachers`,
+                url: `tenant/${tenantName}/teachers/create`,
                 method: 'POST',
                 body: data,
             }),
@@ -21,7 +21,7 @@ export const schoolApi = apiSlice.injectEndpoints({
         }),
         updateTeacher: builder.mutation({
             query: ({ tenantName, id, data }) => ({
-                url: `tenant/${tenantName}/teachers/${id}`,
+                url: `tenant/${tenantName}/teachers/update/${id}`,
                 method: 'PUT',
                 body: data,
             }),
@@ -29,7 +29,7 @@ export const schoolApi = apiSlice.injectEndpoints({
         }),
         deleteTeacher: builder.mutation({
             query: ({ tenantName, id }) => ({
-                url: `tenant/${tenantName}/teachers/${id}`,
+                url: `tenant/${tenantName}/teachers/delete/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Teacher'],
