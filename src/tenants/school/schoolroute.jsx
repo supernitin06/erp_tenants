@@ -8,6 +8,7 @@ import LibraryBooksManagement from './pages/LibraryBooksManagement';
 import ClassManagement from './pages/ClassManagement';
 import SalaryManagement from './pages/SalaryManagement';
 import FeeManagement from './pages/FeeManagement';
+import TeacherManagement from './pages/Teacher';
 
 const schoolRoutes = [
     {
@@ -16,8 +17,9 @@ const schoolRoutes = [
     },
     {
         path: 'teacher',
-        element: <Teacher />,
+        element: <TeacherManagement />,
     },
+   
     {
         path: 'library',
         element: <Library />,
