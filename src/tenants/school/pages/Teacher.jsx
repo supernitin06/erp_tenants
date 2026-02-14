@@ -509,6 +509,9 @@ const TeacherManagement = () => {
     try {
       const teacherData = {
         ...newTeacher,
+        experience: newTeacher.experience ? Number(newTeacher.experience) : 0,
+        salary: newTeacher.salary ? Number(newTeacher.salary) : 0,
+        joiningDate: newTeacher.joiningDate || null,
         avatar: newTeacher.name.split(' ').map(n => n[0]).join(''),
         rating: 4.5,
         students: 0,
@@ -516,16 +519,22 @@ const TeacherManagement = () => {
       await createTeacher({ tenantName, data: teacherData }).unwrap();
     } catch (error) {
       console.error("Failed to create teacher", error);
-      alert("Failed to create teacher");
+      alert(error?.data?.message || "Failed to create teacher");
     }
   };
 
   const handleEditTeacher = async (updatedTeacher) => {
     try {
-      await updateTeacher({ tenantName, id: updatedTeacher.id, data: updatedTeacher }).unwrap();
+      const teacherData = {
+        ...updatedTeacher,
+        experience: updatedTeacher.experience ? Number(updatedTeacher.experience) : 0,
+        salary: updatedTeacher.salary ? Number(updatedTeacher.salary) : 0,
+        joiningDate: updatedTeacher.joiningDate || null,
+      };
+      await updateTeacher({ tenantName, id: updatedTeacher.id, data: teacherData }).unwrap();
     } catch (error) {
       console.error("Failed to update teacher", error);
-      alert("Failed to update teacher");
+      alert(error?.data?.message || "Failed to update teacher");
     }
   };
 
