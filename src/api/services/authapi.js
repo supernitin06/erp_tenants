@@ -1,21 +1,22 @@
-import { apiSlice } from "../apiSlice";
+import { apiSlice } from '../apiSlice';
 
 export const authApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation({
             query: (credentials) => ({
-                url: '/auth/tenant/login',
+                url: 'auth/tenant/login',
                 method: 'POST',
-                body: {
-                    tenantUsername: credentials.tenantUsername,
-                    password: credentials.password
-                },
+                body: credentials,
             }),
         }),
-        getTenantInfo: builder.query({
-            query: () => '/auth/tenant-info',
+        registerTenant: builder.mutation({
+            query: (data) => ({
+                url: 'auth/tenant/register',
+                method: 'POST',
+                body: data,
+            }),
         }),
     }),
 });
 
-export const { useLoginMutation, useGetTenantInfoQuery } = authApi;
+export const { useLoginMutation, useRegisterTenantMutation } = authApi;

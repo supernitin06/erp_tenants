@@ -1,26 +1,69 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircleIcon, CreditCardIcon, QrCodeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { 
+    CheckCircleIcon, 
+    CreditCardIcon, 
+    QrCodeIcon, 
+    ArrowLeftIcon,
+    ShieldCheckIcon,
+    LockClosedIcon,
+    SparklesIcon,
+    BanknotesIcon,
+    DevicePhoneMobileIcon,
+    ClockIcon,
+    StarIcon
+} from '@heroicons/react/24/outline';
+import { 
+    HiOutlineCheckCircle, 
+    HiOutlineShieldCheck, 
+    HiOutlineSparkles,
+    HiOutlineClock,
+    HiOutlineArrowPath,
+    HiOutlineCreditCard,
+    HiOutlineDevicePhoneMobile
+} from 'react-icons/hi2';
+import { FiSmartphone, FiLock, FiShield, FiZap } from 'react-icons/fi';
 
 const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { tenantName } = useParams();
-    const plan = location.state?.plan || { id: 'default', name: 'Subscription Plan', price: 0 };
+    const plan = location.state?.plan || { 
+        id: 'default', 
+        name: 'Subscription Plan', 
+        price: 0,
+        features: ['24/7 Support', 'Secure Payment', 'Instant Access']
+    };
 
     const [loading, setLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('modal'); // 'modal' or 'qr'
+    const [paymentMethod, setPaymentMethod] = useState('modal');
     const [qrData, setQrData] = useState(null);
     const [polling, setPolling] = useState(false);
     const [message, setMessage] = useState('');
+    const [countdown, setCountdown] = useState(300); // 5 minutes countdown
 
-    // --- 1. RAZORPAY MODAL METHOD ---
+    // Countdown timer for QR payment
+    useEffect(() => {
+        let timer;
+        if (paymentMethod === 'qr' && qrData && countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [paymentMethod, qrData, countdown]);
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     const handleModalPayment = async () => {
         setLoading(true);
+        setMessage('');
         try {
-            // Step 1: Create Order on Backend
             const token = localStorage.getItem('token');
             const orderResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/create-order', {
                 method: 'POST',
@@ -36,7 +79,6 @@ const PaymentPage = () => {
 
             const { orderId, amount, key, planName } = data;
 
-            // Step 2: Configure Razorpay Options
             const options = {
                 key: key,
                 amount: amount,
@@ -45,7 +87,6 @@ const PaymentPage = () => {
                 description: `Subscription for ${planName}`,
                 order_id: orderId,
                 handler: async function (response) {
-                    // Step 3: Verify Payment on Backend
                     const token = localStorage.getItem('token');
                     const verifyResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/verify', {
                         method: 'POST',
@@ -63,33 +104,49 @@ const PaymentPage = () => {
 
                     const result = await verifyResponse.json();
                     if (result.success) {
-                        setMessage("✅ Subscription Activated Successfully!");
+                        setMessage("success");
                         setTimeout(() => navigate(`/${tenantName}/plan-history`), 2000);
                     } else {
                         throw new Error(result.message || "Verification failed");
                     }
                 },
+                modal: {
+                    ondismiss: function() {
+                        setLoading(false);
+                        setMessage("Payment cancelled");
+                    }
+                },
                 prefill: {
                     name: "Tenant Admin",
-                    email: "admin@tenant.com"
+                    email: "admin@tenant.com",
+                    contact: "9999999999"
                 },
-                theme: { color: "#6366f1" }
+                theme: { 
+                    color: "#8b5cf6" 
+                },
+                method: {
+                    upi: true,
+                    card: true,
+                    netbanking: true,
+                    wallet: true,
+                    paylater: true
+                }
             };
 
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch (error) {
             console.error("Payment failed", error);
-            setMessage("❌ Payment Failed: " + error.message);
+            setMessage("error");
         } finally {
             setLoading(false);
         }
     };
 
-    // --- 2. QR CODE METHOD ---
     const handleQrPayment = async () => {
         setLoading(true);
         setQrData(null);
+        setCountdown(300);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/create-qr', {
@@ -111,13 +168,12 @@ const PaymentPage = () => {
             }
         } catch (error) {
             console.error("QR Error:", error);
-            setMessage("❌ QR Error: " + error.message);
+            setMessage("error");
         } finally {
             setLoading(false);
         }
     };
 
-    // --- 3. POLLING FOR QR PAYMENT STATUS ---
     const startPolling = (qrId) => {
         setPolling(true);
         const interval = setInterval(async () => {
@@ -133,164 +189,531 @@ const PaymentPage = () => {
                 if (data.success) {
                     clearInterval(interval);
                     setPolling(false);
-                    setMessage("✅ Payment Received! Subscription Activated.");
+                    setMessage("success");
                     setTimeout(() => navigate(`/${tenantName}/plan-history`), 2000);
                 }
             } catch (error) {
                 console.error("Polling error", error);
             }
-        }, 5000); // Poll every 5 seconds
+        }, 5000);
 
-        // Cleanup interval on unmount
         return () => clearInterval(interval);
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 12
+            }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-[#0B1120] text-white flex items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 py-12 px-4 relative overflow-hidden">
+            {/* Decorative elements */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-900/50 backdrop-blur-2xl border border-slate-800 rounded-3xl overflow-hidden shadow-2xl"
+                animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 90, 0],
+                }}
+                transition={{ 
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear"
+                }}
+                className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-r from-violet-200 to-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+            />
+            <motion.div
+                animate={{ 
+                    scale: [1, 1.3, 1],
+                    rotate: [0, -90, 0],
+                }}
+                transition={{ 
+                    duration: 25,
+                    repeat: Infinity,
+                    ease: "linear"
+                }}
+                className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-r from-blue-200 to-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
+            />
+
+            {/* Floating particles */}
+            {[...Array(15)].map((_, i) => (
+                <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-violet-300 rounded-full"
+                    initial={{ 
+                        x: Math.random() * window.innerWidth,
+                        y: Math.random() * window.innerHeight 
+                    }}
+                    animate={{ 
+                        y: [null, -50, 50, -50],
+                        x: [null, 50, -50, 50]
+                    }}
+                    transition={{ 
+                        duration: 15 + Math.random() * 10,
+                        repeat: Infinity,
+                        delay: Math.random() * 5
+                    }}
+                    style={{ opacity: 0.1 + Math.random() * 0.2 }}
+                />
+            ))}
+
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="max-w-6xl mx-auto relative z-10"
             >
-                {/* Left Side: Order Summary */}
-                <div className="p-10 bg-gradient-to-br from-indigo-600/10 to-transparent flex flex-col justify-between border-r border-slate-800/50">
-                    <div>
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="flex items-center text-slate-400 hover:text-white mb-8 transition-colors"
-                        >
-                            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                            Back to Plans
-                        </button>
-                        <h2 className="text-3xl font-black mb-2">Order Summary</h2>
-                        <p className="text-slate-400 mb-8 border-b border-slate-800 pb-4">Complete your subscription for {plan.name}</p>
+                {/* Header */}
+                <motion.div variants={itemVariants} className="text-center mb-8">
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="inline-block mb-4"
+                    >
+                        <span className="bg-white/50 backdrop-blur-sm text-violet-600 px-6 py-2 rounded-full text-sm font-medium shadow-lg border border-violet-200 inline-flex items-center gap-2">
+                            <SparklesIcon className="w-4 h-4" />
+                            Secure Checkout
+                            <SparklesIcon className="w-4 h-4" />
+                        </span>
+                    </motion.div>
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-2">
+                        Complete Your
+                        <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent ml-2">
+                            Payment
+                        </span>
+                    </h1>
+                </motion.div>
 
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center text-lg">
-                                <span className="text-slate-300">{plan.name} Plan</span>
-                                <span className="font-bold">₹{plan.price}</span>
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column - Order Summary */}
+                    <motion.div variants={itemVariants} className="lg:col-span-1">
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-violet-100 overflow-hidden sticky top-24">
+                            {/* Summary Header */}
+                            <div className="bg-gradient-to-r from-violet-600 to-purple-600 p-6">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <BanknotesIcon className="w-6 h-6" />
+                                    Order Summary
+                                </h2>
                             </div>
-                            <div className="flex justify-between items-center text-sm text-slate-500">
-                                <span>Duration</span>
-                                <span>30 Days</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-slate-500">
-                                <span>Platform Fee</span>
-                                <span className="text-emerald-500">Free</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div className="mt-12 pt-6 border-t border-slate-800">
-                        <div className="flex justify-between items-center mb-6">
-                            <span className="text-xl font-medium">Total Amount</span>
-                            <span className="text-3xl font-black text-indigo-400">₹{plan.price}</span>
-                        </div>
-                        <div className="flex items-center text-xs text-slate-500">
-                            <CheckCircleIcon className="w-4 h-4 mr-2 text-emerald-500" />
-                            Secured by Razorpay Encryption
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Side: Payment Options */}
-                <div className="p-10 flex flex-col">
-                    <h3 className="text-xl font-bold mb-6">Select Payment Method</h3>
-
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <button
-                            onClick={() => setPaymentMethod('modal')}
-                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${paymentMethod === 'modal' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'}`}
-                        >
-                            <CreditCardIcon className="w-8 h-8" />
-                            <span className="text-sm font-semibold">Pay with Card/Net</span>
-                        </button>
-                        <button
-                            onClick={() => setPaymentMethod('qr')}
-                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${paymentMethod === 'qr' ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'}`}
-                        >
-                            <QrCodeIcon className="w-8 h-8" />
-                            <span className="text-sm font-semibold">Pay via UPI QR</span>
-                        </button>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                        {paymentMethod === 'modal' ? (
-                            <motion.div
-                                key="modal"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="flex flex-col flex-1 justify-center"
-                            >
-                                <p className="text-slate-400 text-center mb-8">
-                                    Continue with Razorpay's secure checkout modal for a wide range of payment options including Cards, Netbanking, and Wallets.
-                                </p>
-                                <button
-                                    onClick={handleModalPayment}
-                                    disabled={loading}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        <>Pay ₹{plan.price} Now</>
-                                    )}
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="qr"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="flex flex-col flex-1 items-center justify-center text-center"
-                            >
-                                {!qrData ? (
-                                    <>
-                                        <p className="text-slate-400 mb-8">Generate a one-time UPI QR code to pay instantly from your mobile app.</p>
-                                        <button
-                                            onClick={handleQrPayment}
-                                            disabled={loading}
-                                            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 py-4 rounded-xl font-bold text-lg transition-all"
-                                        >
-                                            {loading ? 'Generating...' : 'Generate QR Code'}
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="space-y-6">
-                                        <div className="bg-white p-4 rounded-2xl inline-block shadow-2xl">
-                                            <img src={qrData.image_url} alt="Razorpay UPI QR" className="w-48 h-48" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <p className="text-emerald-400 font-bold animate-pulse">Waiting for payment...</p>
-                                            <p className="text-slate-500 text-xs">Scan the code using any UPI app (GPay, PhonePe, etc.)</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setQrData(null)}
-                                            className="text-slate-400 text-sm hover:underline"
-                                        >
-                                            Generate new code
-                                        </button>
+                            {/* Plan Details */}
+                            <div className="p-6 space-y-6">
+                                <div className="flex items-start gap-4 pb-6 border-b border-violet-100">
+                                    <div className="w-16 h-16 bg-violet-100 rounded-2xl flex items-center justify-center">
+                                        <SparklesIcon className="w-8 h-8 text-violet-600" />
                                     </div>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                    <div>
+                                        <p className="text-sm text-violet-600 font-medium">Selected Plan</p>
+                                        <h3 className="text-xl font-bold text-slate-800">{plan.name}</h3>
+                                    </div>
+                                </div>
 
-                    {message && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`mt-6 p-4 rounded-xl text-center text-sm font-medium ${message.includes('✅') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}
-                        >
-                            {message}
-                        </motion.div>
-                    )}
+                                {/* Price Breakdown */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-600">Plan Price</span>
+                                        <span className="font-semibold text-slate-800">₹{plan.price}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-600">Duration</span>
+                                        <span className="font-semibold text-slate-800">30 Days</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-600">Platform Fee</span>
+                                        <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">Free</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-600">GST (18%)</span>
+                                        <span className="font-semibold text-slate-800">₹{Math.round(plan.price * 0.18)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Total */}
+                                <div className="pt-4 border-t border-violet-100">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="text-lg font-semibold text-slate-800">Total Amount</span>
+                                        <div className="text-right">
+                                            <span className="text-3xl font-black text-violet-600">
+                                                ₹{plan.price + Math.round(plan.price * 0.18)}
+                                            </span>
+                                            <p className="text-xs text-slate-500">inclusive of all taxes</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Features */}
+                                <div className="bg-violet-50/50 rounded-2xl p-4">
+                                    <p className="text-xs font-semibold text-violet-600 uppercase tracking-wider mb-3">What's included</p>
+                                    <ul className="space-y-2">
+                                        {plan.features?.slice(0, 3).map((feature, idx) => (
+                                            <li key={idx} className="flex items-center gap-2 text-sm text-slate-600">
+                                                <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* Security Badge */}
+                                <div className="flex items-center justify-center gap-2 text-xs text-slate-500">
+                                    <LockClosedIcon className="w-3 h-3" />
+                                    <span>256-bit SSL Secure</span>
+                                    <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                    <ShieldCheckIcon className="w-3 h-3" />
+                                    <span>PCI Compliant</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Right Column - Payment Options */}
+                    <motion.div variants={itemVariants} className="lg:col-span-2">
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-violet-100 overflow-hidden">
+                            {/* Payment Header */}
+                            <div className="p-6 border-b border-violet-100">
+                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    <CreditCardIcon className="w-6 h-6 text-violet-600" />
+                                    Payment Method
+                                </h2>
+                            </div>
+
+                            <div className="p-6">
+                                {/* Payment Method Tabs */}
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => setPaymentMethod('modal')}
+                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
+                                            paymentMethod === 'modal' 
+                                            ? 'border-violet-500 bg-violet-50' 
+                                            : 'border-slate-200 hover:border-violet-200 bg-white'
+                                        }`}
+                                    >
+                                        {paymentMethod === 'modal' && (
+                                            <motion.div
+                                                layoutId="paymentTab"
+                                                className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-purple-500/10"
+                                                initial={false}
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
+                                        <div className="relative flex flex-col items-center gap-2">
+                                            <CreditCardIcon className={`w-8 h-8 ${paymentMethod === 'modal' ? 'text-violet-600' : 'text-slate-400'}`} />
+                                            <span className={`text-sm font-semibold ${paymentMethod === 'modal' ? 'text-violet-600' : 'text-slate-600'}`}>
+                                                Cards & NetBanking
+                                            </span>
+                                        </div>
+                                    </motion.button>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => setPaymentMethod('qr')}
+                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
+                                            paymentMethod === 'qr' 
+                                            ? 'border-violet-500 bg-violet-50' 
+                                            : 'border-slate-200 hover:border-violet-200 bg-white'
+                                        }`}
+                                    >
+                                        {paymentMethod === 'qr' && (
+                                            <motion.div
+                                                layoutId="paymentTab"
+                                                className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-purple-500/10"
+                                                initial={false}
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
+                                        <div className="relative flex flex-col items-center gap-2">
+                                            <QrCodeIcon className={`w-8 h-8 ${paymentMethod === 'qr' ? 'text-violet-600' : 'text-slate-400'}`} />
+                                            <span className={`text-sm font-semibold ${paymentMethod === 'qr' ? 'text-violet-600' : 'text-slate-600'}`}>
+                                                UPI QR Code
+                                            </span>
+                                        </div>
+                                    </motion.button>
+                                </div>
+
+                                <AnimatePresence mode="wait">
+                                    {paymentMethod === 'modal' ? (
+                                        <motion.div
+                                            key="modal"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -20 }}
+                                            className="space-y-6"
+                                        >
+                                            {/* Payment Methods Grid */}
+                                            <div className="grid grid-cols-3 gap-3 mb-6">
+                                                {['Visa', 'Mastercard', 'RuPay', 'UPI', 'Paytm', 'PhonePe'].map((method, idx) => (
+                                                    <div key={idx} className="bg-slate-50 rounded-xl p-3 text-center border border-slate-200">
+                                                        <span className="text-xs font-medium text-slate-600">{method}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="text-center">
+                                                <p className="text-slate-600 mb-6">
+                                                    You'll be redirected to our secure payment partner, Razorpay.
+                                                </p>
+                                                
+                                                <motion.button
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    onClick={handleModalPayment}
+                                                    disabled={loading}
+                                                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 disabled:from-slate-400 disabled:to-slate-400 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
+                                                >
+                                                    {loading ? (
+                                                        <>
+                                                            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                            <span>Processing...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span>Pay ₹{plan.price + Math.round(plan.price * 0.18)} Now</span>
+                                                            <motion.span
+                                                                animate={{ x: [0, 5, 0] }}
+                                                                transition={{ repeat: Infinity, duration: 1.5 }}
+                                                            >
+                                                                →
+                                                            </motion.span>
+                                                        </>
+                                                    )}
+                                                    <motion.div
+                                                        className="absolute inset-0 bg-white"
+                                                        initial={{ x: "-100%" }}
+                                                        whileHover={{ x: "100%" }}
+                                                        transition={{ duration: 0.5 }}
+                                                        style={{ opacity: 0.2 }}
+                                                    />
+                                                </motion.button>
+                                            </div>
+
+                                            {/* Trust Badges */}
+                                            <div className="flex items-center justify-center gap-4 pt-4">
+                                                <img src="https://razorpay.com/assets/razorpay-icon.svg" alt="Razorpay" className="h-6 opacity-50" />
+                                                <img src="https://www.pcisecuritystandards.org/wp-content/uploads/2022/10/pci-logo.png" alt="PCI" className="h-6 opacity-50" />
+                                            </div>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="qr"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -20 }}
+                                            className="space-y-6"
+                                        >
+                                            {!qrData ? (
+                                                <>
+                                                    <div className="text-center space-y-4">
+                                                        <div className="bg-violet-50 rounded-2xl p-8">
+                                                            <DevicePhoneMobileIcon className="w-16 h-16 text-violet-600 mx-auto mb-4" />
+                                                            <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                                                                Scan & Pay with UPI
+                                                            </h3>
+                                                            <p className="text-slate-600 text-sm">
+                                                                Generate a QR code and pay instantly using any UPI app like GPay, PhonePe, or Paytm.
+                                                            </p>
+                                                        </div>
+
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.02 }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            onClick={handleQrPayment}
+                                                            disabled={loading}
+                                                            className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 disabled:from-slate-400 disabled:to-slate-400 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-2"
+                                                        >
+                                                            {loading ? (
+                                                                <>
+                                                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                                    Generating QR Code...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <QrCodeIcon className="w-5 h-5" />
+                                                                    Generate QR Code
+                                                                </>
+                                                            )}
+                                                        </motion.button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="text-center space-y-6">
+                                                    {/* Timer */}
+                                                    <div className="flex items-center justify-center gap-2 text-sm">
+                                                        <ClockIcon className="w-4 h-4 text-amber-500" />
+                                                        <span className="text-slate-600">QR Code expires in</span>
+                                                        <span className="font-mono font-bold text-violet-600 bg-violet-100 px-2 py-1 rounded-lg">
+                                                            {formatTime(countdown)}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* QR Code */}
+                                                    <motion.div
+                                                        initial={{ scale: 0.9, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        className="relative inline-block"
+                                                    >
+                                                        <div className="bg-white p-4 rounded-3xl shadow-2xl border-4 border-violet-100">
+                                                            <img src={qrData.image_url} alt="UPI QR Code" className="w-56 h-56" />
+                                                        </div>
+                                                        
+                                                        {/* Scanning Animation */}
+                                                        <motion.div
+                                                            animate={{ 
+                                                                y: [0, 100, 0],
+                                                                opacity: [0, 1, 0]
+                                                            }}
+                                                            transition={{ 
+                                                                duration: 2,
+                                                                repeat: Infinity,
+                                                                ease: "linear"
+                                                            }}
+                                                            className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-violet-500 to-transparent"
+                                                        />
+                                                    </motion.div>
+
+                                                    {/* Payment Status */}
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                                            <p className="text-emerald-600 font-medium">
+                                                                {polling ? 'Waiting for payment...' : 'Scan the QR code to pay'}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* UPI Apps */}
+                                                        <div className="flex justify-center gap-3">
+                                                            {['gpay', 'phonepe', 'paytm'].map((app) => (
+                                                                <div key={app} className="bg-slate-100 rounded-lg px-3 py-1.5">
+                                                                    <span className="text-xs font-medium text-slate-600 capitalize">{app}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Actions */}
+                                                    <div className="flex gap-3 justify-center">
+                                                        <button
+                                                            onClick={() => {
+                                                                setQrData(null);
+                                                                setCountdown(300);
+                                                            }}
+                                                            className="text-sm text-slate-500 hover:text-violet-600 flex items-center gap-1 transition-colors"
+                                                        >
+                                                            <HiOutlineArrowPath className="w-4 h-4" />
+                                                            Generate New Code
+                                                        </button>
+                                                        <span className="text-slate-300">|</span>
+                                                        <button
+                                                            onClick={() => setPaymentMethod('modal')}
+                                                            className="text-sm text-slate-500 hover:text-violet-600 transition-colors"
+                                                        >
+                                                            Try Other Methods
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Message Display */}
+                                <AnimatePresence>
+                                    {message && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className={`mt-6 p-4 rounded-xl ${
+                                                message === 'success' 
+                                                ? 'bg-emerald-50 border border-emerald-200' 
+                                                : message === 'error'
+                                                ? 'bg-rose-50 border border-rose-200'
+                                                : 'bg-amber-50 border border-amber-200'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {message === 'success' ? (
+                                                    <>
+                                                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                                            <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-emerald-800">Payment Successful!</p>
+                                                            <p className="text-sm text-emerald-600">Redirecting to plan history...</p>
+                                                        </div>
+                                                    </>
+                                                ) : message === 'error' ? (
+                                                    <>
+                                                        <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center">
+                                                            <HiOutlineCheckCircle className="w-5 h-5 text-rose-600" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-rose-800">Payment Failed</p>
+                                                            <p className="text-sm text-rose-600">Please try again or use another method</p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                                                            <ClockIcon className="w-5 h-5 text-amber-600" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-amber-800">{message}</p>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Back Button */}
+                                <motion.button
+                                    whileHover={{ x: -5 }}
+                                    onClick={() => navigate(-1)}
+                                    className="mt-6 text-sm text-slate-500 hover:text-violet-600 flex items-center gap-1 transition-colors"
+                                >
+                                    <ArrowLeftIcon className="w-4 h-4" />
+                                    Back to Plans
+                                </motion.button>
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
+
+                {/* Footer */}
+                <motion.div variants={itemVariants} className="mt-8 text-center">
+                    <div className="inline-flex items-center gap-4 bg-white/50 backdrop-blur-sm px-6 py-3 rounded-full border border-slate-200 shadow-sm">
+                        <ShieldCheckIcon className="w-5 h-5 text-emerald-500" />
+                        <span className="text-sm text-slate-600">100% Secure Payment</span>
+                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                        <LockClosedIcon className="w-5 h-5 text-violet-500" />
+                        <span className="text-sm text-slate-600">Encrypted Transaction</span>
+                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                        <FiZap className="w-5 h-5 text-amber-500" />
+                        <span className="text-sm text-slate-600">Instant Activation</span>
+                    </div>
+                </motion.div>
             </motion.div>
         </div>
     );

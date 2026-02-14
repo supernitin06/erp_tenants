@@ -8,6 +8,7 @@ import hospitalRoutes from '../tenants/hospital/hospitalroute';
 import PlanHistory from '../common/pages/PlanHistory';
 import Pricing from '../common/pages/Pricing';
 import PaymentPage from '../common/pages/PaymentPage';
+import RegisterPage from '../common/auth/Register';
 
 const router = createBrowserRouter([
     {
@@ -18,9 +19,21 @@ const router = createBrowserRouter([
         path: '/login',
         element: <Login />,
     },
+     {
+        path: '/register',
+        element: <RegisterPage />,
+    },
     {
         element: <ProtectedRoute />,
         children: [
+            {
+                path: '/:tenantName/pricing',
+                element: <Pricing />,
+            },
+            {
+                path: '/:tenantName/checkout',
+                element: <PaymentPage />,
+            },
             {
                 path: '/:tenantName',
                 element: <Layout />,
@@ -33,14 +46,6 @@ const router = createBrowserRouter([
                     {
                         path: 'plan-history',
                         element: <PlanHistory />,
-                    },
-                    {
-                        path: 'pricing',
-                        element: <Pricing />,
-                    },
-                    {
-                        path: 'checkout',
-                        element: <PaymentPage />,
                     },
 
                     {
