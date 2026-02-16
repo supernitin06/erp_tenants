@@ -17,7 +17,7 @@ const DashboardCard = ({ title, value, icon: Icon, color }) => (
         </div>
         <h3 className="text-slate-400 text-sm font-medium mb-1">{title}</h3>
         <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
-    </div>
+    </div> 
 );
 
 const Dashboard = () => {
@@ -29,9 +29,11 @@ const Dashboard = () => {
                 <h1 className="text-3xl font-bold text-white mb-2 capitalize">
                     Welcome Back, {tenantName}! 👋
                 </h1>
+
                 <p className="text-slate-400 text-sm">
                     Here is what's happening in your organization today.
                 </p>
+                
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -41,18 +43,21 @@ const Dashboard = () => {
                     icon={UserGroupIcon}
                     color="bg-blue-500 text-blue-500"
                 />
+
                 <DashboardCard
                     title="Active Teachers"
                     value="42"
                     icon={AcademicCapIcon}
                     color="bg-purple-500 text-purple-500"
                 />
+
                 <DashboardCard
                     title="Departments"
                     value="12"
                     icon={BuildingOfficeIcon}
                     color="bg-emerald-500 text-emerald-500"
                 />
+
                 <DashboardCard
                     title="Revenue"
                     value="$12,450"

@@ -4,7 +4,7 @@ import { useAuth } from '../context/authcontext';
 import { useLoginMutation } from '../../api/services/authapi';
 
 const Login = () => {
-    const [tenantUsername, setTenantUsername] = useState('BITMAX');
+    const [tenantUsername, setTenantUsername] = useState('BITMA');
     const [password, setPassword] = useState('111111');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
@@ -146,6 +146,7 @@ const Login = () => {
                             <button className="w-full px-3 sm:px-4 md:px-6 font-semibold rounded-lg sm:rounded-xl py-1.5 sm:py-2 md:py-2.5 bg-white bg-opacity-50 backdrop-blur-sm border border-white border-opacity-60 text-gray-800 flex items-center justify-center transition-all duration-300 hover:bg-opacity-70 hover:shadow-lg focus:outline-none text-[10px] sm:text-xs md:text-sm">
                                 <div className="bg-white p-0.5 sm:p-1 rounded-full">
                                     <svg className="w-3 sm:w-4 h-3 sm:h-4" viewBox="0 0 533.5 544.3">
+
                                         <path
                                             d="M533.5 278.4c0-18.5-1.5-37.1-4.7-55.3H272.1v104.8h147c-6.1 33.8-25.7 63.7-54.4 82.7v68h87.7c51.5-47.4 81.1-117.4 81.1-200.2z"
                                             fill="#4285f4"
