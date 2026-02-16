@@ -13,17 +13,18 @@ export const AuthProvider = ({ children }) => {
 
     // Verify session on mount or token change
     // Verify session on mount
-    const { data: verifiedUser, isSuccess, isLoading: isVerifying } = useVerifySessionQuery();
+    // Session verification removed as per request (endpoint 404)
+    // const { data: verifiedUser, isSuccess, isLoading: isVerifying } = useVerifySessionQuery();
 
-    useEffect(() => {
-        if (isSuccess && verifiedUser) {
-            // Update state with fresh data from backend
-            setUser(verifiedUser.user || verifiedUser); // Adjust based on backend response shape
-            // If response includes updated tenantName/planId, update those too
-            if (verifiedUser.tenantName) setTenantName(verifiedUser.tenantName);
-            if (verifiedUser.planId) setPlanId(verifiedUser.planId);
-        }
-    }, [isSuccess, verifiedUser]);
+    // useEffect(() => {
+    //     if (isSuccess && verifiedUser) {
+    //         // Update state with fresh data from backend
+    //         setUser(verifiedUser.user || verifiedUser); // Adjust based on backend response shape
+    //         // If response includes updated tenantName/planId, update those too
+    //         if (verifiedUser.tenantName) setTenantName(verifiedUser.tenantName);
+    //         if (verifiedUser.planId) setPlanId(verifiedUser.planId);
+    //     }
+    // }, [isSuccess, verifiedUser]);
 
     const login = (userData) => {
         setUser(userData.user);
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, tenantName, planId, login, logout, loading: isVerifying }}>
+        <AuthContext.Provider value={{ user, tenantName, planId, login, logout, loading: false }}>
             {children}
         </AuthContext.Provider>
     );
