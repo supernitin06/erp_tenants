@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authcontext';
 import { useLoginMutation } from '../../api/services/authapi';
@@ -8,8 +8,23 @@ const Login = () => {
     const [password, setPassword] = useState('Abc@123#');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const { login: setAuthContext } = useAuth();
+    const { login: setAuthContext, user, loading } = useAuth();
     const [loginApi, { isLoading }] = useLoginMutation();
+
+    useEffect(() => {
+        if (!loading && user) {
+            const tenantPath = user.tenantUsername;
+            navigate(`/${tenantPath}`, { replace: true });
+        }
+    }, [user, loading, navigate]);
+
+    if (loading) {
+        return (
+            <div className="h-screen w-screen flex justify-center items-center bg-slate-900">
+                <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     const handleLogin = async (e) => {
         e.preventDefault();
