@@ -14,7 +14,11 @@ const Login = () => {
     useEffect(() => {
         if (!loading && user) {
             const tenantPath = user.tenantUsername;
-            navigate(`/${tenantPath}`, { replace: true });
+            if (user.subscription_planId && user.isActive) {
+                navigate(`/${tenantPath}`, { replace: true });
+            } else {
+                navigate(`/${tenantPath}/pricing`, { replace: true });
+            }
         }
     }, [user, loading, navigate]);
 
@@ -41,10 +45,9 @@ const Login = () => {
                 planId: tenant.subscription_planId
             });
 
-            const { is_plan_assigned } = tenant;
             const tenantPath = tenant.tenantUsername;
 
-            if (is_plan_assigned) {
+            if (tenant.subscription_planId && tenant.isActive) {
                 navigate(`/${tenantPath}`);
             } else {
                 navigate(`/${tenantPath}/pricing`);
