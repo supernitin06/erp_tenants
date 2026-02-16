@@ -8,23 +8,23 @@ import RoomManagement from './pages/RoomManagement';
 
 const hospitalRoutes = [
     {
-        path: 'doctor-manegement',
+        path: 'DOCTORS/doctor-management',
         element: <DoctorManagement />,
     },
     {
-        path: 'doctor-appoitments',
+        path: 'DOCTORS/doctor-appointment',
         element: <DoctorAppointments />,
     },
     {
-        path: 'patient-manaegemnt',
+        path: 'PATIENTS/patient-management',
         element: <PatientManagement />,
     },
     {
-        path: 'lab-manageemnt',
+        path: 'HOSPITAL LABS/lab-management',
         element: <LabManagement />,
     },
     {
-        path: 'room',
+        path: 'HOSPITAL ROOMS/room-management',
         element: <RoomManagement />,
     },
 ];
