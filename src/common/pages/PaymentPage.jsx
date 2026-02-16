@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    CheckCircleIcon, 
-    CreditCardIcon, 
-    QrCodeIcon, 
+import {
+    CheckCircleIcon,
+    CreditCardIcon,
+    QrCodeIcon,
     ArrowLeftIcon,
     ShieldCheckIcon,
     LockClosedIcon,
@@ -14,9 +14,9 @@ import {
     ClockIcon,
     StarIcon
 } from '@heroicons/react/24/outline';
-import { 
-    HiOutlineCheckCircle, 
-    HiOutlineShieldCheck, 
+import {
+    HiOutlineCheckCircle,
+    HiOutlineShieldCheck,
     HiOutlineSparkles,
     HiOutlineClock,
     HiOutlineArrowPath,
@@ -29,9 +29,9 @@ const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { tenantName } = useParams();
-    const plan = location.state?.plan || { 
-        id: 'default', 
-        name: 'Subscription Plan', 
+    const plan = location.state?.plan || {
+        id: 'default',
+        name: 'Subscription Plan',
         price: 0,
         features: ['24/7 Support', 'Secure Payment', 'Instant Access']
     };
@@ -64,13 +64,12 @@ const PaymentPage = () => {
         setLoading(true);
         setMessage('');
         try {
-            const token = localStorage.getItem('token');
             const orderResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/create-order', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ planId: plan.id })
             });
             const data = await orderResponse.json();
@@ -87,13 +86,12 @@ const PaymentPage = () => {
                 description: `Subscription for ${planName}`,
                 order_id: orderId,
                 handler: async function (response) {
-                    const token = localStorage.getItem('token');
                     const verifyResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/verify', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
+                            'Content-Type': 'application/json'
                         },
+                        credentials: 'include',
                         body: JSON.stringify({
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_order_id: response.razorpay_order_id,
@@ -111,7 +109,7 @@ const PaymentPage = () => {
                     }
                 },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         setLoading(false);
                         setMessage("Payment cancelled");
                     }
@@ -121,8 +119,8 @@ const PaymentPage = () => {
                     email: "admin@tenant.com",
                     contact: "9999999999"
                 },
-                theme: { 
-                    color: "#8b5cf6" 
+                theme: {
+                    color: "#8b5cf6"
                 },
                 method: {
                     upi: true,
@@ -148,13 +146,12 @@ const PaymentPage = () => {
         setQrData(null);
         setCountdown(300);
         try {
-            const token = localStorage.getItem('token');
             const response = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/create-qr', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ planId: plan.id })
             });
 
@@ -178,11 +175,8 @@ const PaymentPage = () => {
         setPolling(true);
         const interval = setInterval(async () => {
             try {
-                const token = localStorage.getItem('token');
                 const response = await fetch(`https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/check-status/${qrId}?planId=${plan.id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 });
                 const data = await response.json();
 
@@ -228,11 +222,11 @@ const PaymentPage = () => {
         <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 py-12 px-4 relative overflow-hidden">
             {/* Decorative elements */}
             <motion.div
-                animate={{ 
+                animate={{
                     scale: [1, 1.2, 1],
                     rotate: [0, 90, 0],
                 }}
-                transition={{ 
+                transition={{
                     duration: 20,
                     repeat: Infinity,
                     ease: "linear"
@@ -240,11 +234,11 @@ const PaymentPage = () => {
                 className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-r from-violet-200 to-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
             />
             <motion.div
-                animate={{ 
+                animate={{
                     scale: [1, 1.3, 1],
                     rotate: [0, -90, 0],
                 }}
-                transition={{ 
+                transition={{
                     duration: 25,
                     repeat: Infinity,
                     ease: "linear"
@@ -257,15 +251,15 @@ const PaymentPage = () => {
                 <motion.div
                     key={i}
                     className="absolute w-1 h-1 bg-violet-300 rounded-full"
-                    initial={{ 
+                    initial={{
                         x: Math.random() * window.innerWidth,
-                        y: Math.random() * window.innerHeight 
+                        y: Math.random() * window.innerHeight
                     }}
-                    animate={{ 
+                    animate={{
                         y: [null, -50, 50, -50],
                         x: [null, 50, -50, 50]
                     }}
-                    transition={{ 
+                    transition={{
                         duration: 15 + Math.random() * 10,
                         repeat: Infinity,
                         delay: Math.random() * 5
@@ -402,11 +396,10 @@ const PaymentPage = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setPaymentMethod('modal')}
-                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
-                                            paymentMethod === 'modal' 
-                                            ? 'border-violet-500 bg-violet-50' 
-                                            : 'border-slate-200 hover:border-violet-200 bg-white'
-                                        }`}
+                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'modal'
+                                                ? 'border-violet-500 bg-violet-50'
+                                                : 'border-slate-200 hover:border-violet-200 bg-white'
+                                            }`}
                                     >
                                         {paymentMethod === 'modal' && (
                                             <motion.div
@@ -428,11 +421,10 @@ const PaymentPage = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setPaymentMethod('qr')}
-                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
-                                            paymentMethod === 'qr' 
-                                            ? 'border-violet-500 bg-violet-50' 
-                                            : 'border-slate-200 hover:border-violet-200 bg-white'
-                                        }`}
+                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'qr'
+                                                ? 'border-violet-500 bg-violet-50'
+                                                : 'border-slate-200 hover:border-violet-200 bg-white'
+                                            }`}
                                     >
                                         {paymentMethod === 'qr' && (
                                             <motion.div
@@ -473,7 +465,7 @@ const PaymentPage = () => {
                                                 <p className="text-slate-600 mb-6">
                                                     You'll be redirected to our secure payment partner, Razorpay.
                                                 </p>
-                                                
+
                                                 <motion.button
                                                     whileHover={{ scale: 1.02 }}
                                                     whileTap={{ scale: 0.98 }}
@@ -575,14 +567,14 @@ const PaymentPage = () => {
                                                         <div className="bg-white p-4 rounded-3xl shadow-2xl border-4 border-violet-100">
                                                             <img src={qrData.image_url} alt="UPI QR Code" className="w-56 h-56" />
                                                         </div>
-                                                        
+
                                                         {/* Scanning Animation */}
                                                         <motion.div
-                                                            animate={{ 
+                                                            animate={{
                                                                 y: [0, 100, 0],
                                                                 opacity: [0, 1, 0]
                                                             }}
-                                                            transition={{ 
+                                                            transition={{
                                                                 duration: 2,
                                                                 repeat: Infinity,
                                                                 ease: "linear"
@@ -643,13 +635,12 @@ const PaymentPage = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className={`mt-6 p-4 rounded-xl ${
-                                                message === 'success' 
-                                                ? 'bg-emerald-50 border border-emerald-200' 
-                                                : message === 'error'
-                                                ? 'bg-rose-50 border border-rose-200'
-                                                : 'bg-amber-50 border border-amber-200'
-                                            }`}
+                                            className={`mt-6 p-4 rounded-xl ${message === 'success'
+                                                    ? 'bg-emerald-50 border border-emerald-200'
+                                                    : message === 'error'
+                                                        ? 'bg-rose-50 border border-rose-200'
+                                                        : 'bg-amber-50 border border-amber-200'
+                                                }`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 {message === 'success' ? (
