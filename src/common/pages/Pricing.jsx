@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/authcontext';
 import { useGetSubscriptionPlansQuery } from '../../api/services/planapi';
-import { 
+import {
     HiOutlineCurrencyRupee,
     HiOutlineCheckCircle,
     HiOutlineXCircle,
@@ -12,18 +13,20 @@ import {
     HiOutlineRefresh,
     HiOutlineSparkles,
     HiOutlineHeart,
-    HiOutlineFire
+    HiOutlineFire,
+    HiOutlineLogout
 } from 'react-icons/hi';
 import { FiPackage, FiZap } from 'react-icons/fi';
 
 const Pricing = () => {
     const { tenantName } = useParams();
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const { data, isLoading, isError } = useGetSubscriptionPlansQuery();
     const plans = data?.plans || [];
 
     const cardStyles = [
-        { 
+        {
             gradient: 'from-amber-50 to-orange-50',
             border: 'border-amber-200',
             shadow: 'shadow-amber-100/50',
@@ -33,7 +36,7 @@ const Pricing = () => {
             light: 'bg-amber-100',
             price: 'text-amber-600'
         },
-        { 
+        {
             gradient: 'from-emerald-50 to-teal-50',
             border: 'border-emerald-200',
             shadow: 'shadow-emerald-100/50',
@@ -43,7 +46,7 @@ const Pricing = () => {
             light: 'bg-emerald-100',
             price: 'text-emerald-600'
         },
-        { 
+        {
             gradient: 'from-sky-50 to-blue-50',
             border: 'border-sky-200',
             shadow: 'shadow-sky-100/50',
@@ -53,7 +56,7 @@ const Pricing = () => {
             light: 'bg-sky-100',
             price: 'text-sky-600'
         },
-        { 
+        {
             gradient: 'from-rose-50 to-pink-50',
             border: 'border-rose-200',
             shadow: 'shadow-rose-100/50',
@@ -63,7 +66,7 @@ const Pricing = () => {
             light: 'bg-rose-100',
             price: 'text-rose-600'
         },
-        { 
+        {
             gradient: 'from-violet-50 to-purple-50',
             border: 'border-violet-200',
             shadow: 'shadow-violet-100/50',
@@ -104,7 +107,7 @@ const Pricing = () => {
     if (isError) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
-                <motion.div 
+                <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-center bg-white/80 backdrop-blur-xl rounded-3xl p-12 shadow-xl border border-red-100"
@@ -114,7 +117,7 @@ const Pricing = () => {
                     </div>
                     <p className="text-slate-800 font-bold text-xl mb-2">Oops! Something went wrong</p>
                     <p className="text-slate-500 mb-6">Failed to load plans</p>
-                    <button 
+                    <button
                         onClick={() => window.location.reload()}
                         className="px-6 py-3 bg-white text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-md hover:shadow-lg flex items-center gap-2 mx-auto border border-slate-200"
                     >
@@ -129,7 +132,7 @@ const Pricing = () => {
     if (!plans.length) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
-                <motion.div 
+                <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-center bg-white/80 backdrop-blur-xl rounded-3xl p-12 shadow-xl border border-slate-200"
@@ -158,8 +161,22 @@ const Pricing = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-7xl mx-auto relative"
             >
+                {/* Logout Button */}
+                <div className="absolute top-0 right-0 z-50">
+                    <button
+                        onClick={() => {
+                            logout();
+                            navigate('/login');
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm text-red-500 rounded-full font-medium shadow-sm border border-red-100 hover:bg-red-50 transition-all"
+                    >
+                        <HiOutlineLogout className="w-5 h-5" />
+                        Logout
+                    </button>
+                </div>
+
                 {/* Header Section */}
-                <div className="text-center mb-16">
+                <div className="text-center mb-16 pt-12">
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -170,14 +187,14 @@ const Pricing = () => {
                             ✨ Simple & Transparent Pricing
                         </span>
                     </motion.div>
-                    
+
                     <h1 className="text-5xl md:text-6xl font-black text-slate-800 mb-6">
                         Choose Your Perfect{' '}
                         <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                             Plan
                         </span>
                     </h1>
-                    
+
                     <p className="text-xl text-slate-600 max-w-2xl mx-auto">
                         Select the ideal subscription plan for{' '}
                         <span className="font-semibold text-blue-600">{tenantName || 'your organization'}</span>.
@@ -189,7 +206,7 @@ const Pricing = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 justify-center">
                     {plans.map((plan, index) => {
                         const style = cardStyles[index % cardStyles.length];
-                        
+
                         return (
                             <motion.div
                                 key={plan.id}
@@ -200,10 +217,10 @@ const Pricing = () => {
                             >
                                 {/* Animated border gradient */}
                                 <div className={`absolute -inset-0.5 bg-gradient-to-r ${style.gradient} rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-300`}></div>
-                                
+
                                 {/* Card */}
                                 <div className={`relative bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border ${style.border} ${style.shadow} ${plan.recommended ? 'scale-105 z-10 ring-4 ring-blue-400/20' : ''}`}>
-                                    
+
                                     {plan.recommended && (
                                         <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-20">
                                             <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-bold px-6 py-2 rounded-full shadow-lg flex items-center gap-2 whitespace-nowrap">
@@ -230,8 +247,8 @@ const Pricing = () => {
                                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">What's included:</p>
                                         <ul className="space-y-3">
                                             {(plan.features || []).slice(0, 5).map((feature, idx) => (
-                                                <motion.li 
-                                                    key={idx} 
+                                                <motion.li
+                                                    key={idx}
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
                                                     transition={{ delay: index * 0.1 + idx * 0.05 }}
@@ -244,7 +261,7 @@ const Pricing = () => {
                                                 </motion.li>
                                             ))}
                                         </ul>
-                                        
+
                                         {(plan.features?.length > 5) && (
                                             <p className="text-xs text-slate-400 mt-3 text-center">
                                                 +{plan.features.length - 5} more features
@@ -273,7 +290,7 @@ const Pricing = () => {
                 </div>
 
                 {/* Footer Note */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}

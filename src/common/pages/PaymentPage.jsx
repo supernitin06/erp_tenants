@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/authcontext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CheckCircleIcon,
@@ -28,6 +29,7 @@ import { FiSmartphone, FiLock, FiShield, FiZap } from 'react-icons/fi';
 const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const { tenantName } = useParams();
     const plan = location.state?.plan || {
         id: 'default',
@@ -103,7 +105,10 @@ const PaymentPage = () => {
                     const result = await verifyResponse.json();
                     if (result.success) {
                         setMessage("success");
-                        setTimeout(() => navigate(`/${tenantName}/plan-history`), 2000);
+                        setTimeout(() => {
+                            logout();
+                            navigate('/login', { replace: true });
+                        }, 2000);
                     } else {
                         throw new Error(result.message || "Verification failed");
                     }
@@ -184,7 +189,10 @@ const PaymentPage = () => {
                     clearInterval(interval);
                     setPolling(false);
                     setMessage("success");
-                    setTimeout(() => navigate(`/${tenantName}/plan-history`), 2000);
+                    setTimeout(() => {
+                        logout();
+                        navigate('/login', { replace: true });
+                    }, 2000);
                 }
             } catch (error) {
                 console.error("Polling error", error);
@@ -397,8 +405,8 @@ const PaymentPage = () => {
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setPaymentMethod('modal')}
                                         className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'modal'
-                                                ? 'border-violet-500 bg-violet-50'
-                                                : 'border-slate-200 hover:border-violet-200 bg-white'
+                                            ? 'border-violet-500 bg-violet-50'
+                                            : 'border-slate-200 hover:border-violet-200 bg-white'
                                             }`}
                                     >
                                         {paymentMethod === 'modal' && (
@@ -422,8 +430,8 @@ const PaymentPage = () => {
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setPaymentMethod('qr')}
                                         className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'qr'
-                                                ? 'border-violet-500 bg-violet-50'
-                                                : 'border-slate-200 hover:border-violet-200 bg-white'
+                                            ? 'border-violet-500 bg-violet-50'
+                                            : 'border-slate-200 hover:border-violet-200 bg-white'
                                             }`}
                                     >
                                         {paymentMethod === 'qr' && (
@@ -636,10 +644,10 @@ const PaymentPage = () => {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                             className={`mt-6 p-4 rounded-xl ${message === 'success'
-                                                    ? 'bg-emerald-50 border border-emerald-200'
-                                                    : message === 'error'
-                                                        ? 'bg-rose-50 border border-rose-200'
-                                                        : 'bg-amber-50 border border-amber-200'
+                                                ? 'bg-emerald-50 border border-emerald-200'
+                                                : message === 'error'
+                                                    ? 'bg-rose-50 border border-rose-200'
+                                                    : 'bg-amber-50 border border-amber-200'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
