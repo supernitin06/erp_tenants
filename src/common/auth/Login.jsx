@@ -4,8 +4,8 @@ import { useAuth } from '../context/authcontext';
 import { useLoginMutation } from '../../api/services/authapi';
 
 const Login = () => {
-    const [tenantUsername, setTenantUsername] = useState('BITMAX');
-    const [password, setPassword] = useState('111111');
+    const [tenantUsername, setTenantUsername] = useState('Uditkesarwani');
+    const [password, setPassword] = useState('Abc@123#');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const { login: setAuthContext } = useAuth();
