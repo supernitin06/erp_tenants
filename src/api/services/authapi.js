@@ -16,7 +16,13 @@ export const authApi = apiSlice.injectEndpoints({
                 body: data,
             }),
         }),
+        verifySession: builder.query({
+            query: () => ({
+                url: 'auth/tenant/me',
+                method: 'GET',
+            }),
+        }),
     }),
 });
 
-export const { useLoginMutation, useRegisterTenantMutation } = authApi;
+export const { useLoginMutation, useRegisterTenantMutation, useVerifySessionQuery } = authApi;

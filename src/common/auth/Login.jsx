@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authcontext';
 import { useLoginMutation } from '../../api/services/authapi';
 
 const Login = () => {
-    const [tenantUsername, setTenantUsername] = useState('BITMA');
-    const [password, setPassword] = useState('111111');
+    const [tenantUsername, setTenantUsername] = useState('Uditkesarwani');
+    const [password, setPassword] = useState('Abc@123#');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-    const { login: setAuthContext } = useAuth();
+    const { login: setAuthContext, user, loading } = useAuth();
     const [loginApi, { isLoading }] = useLoginMutation();
+
+    useEffect(() => {
+        if (!loading && user) {
+            const tenantPath = user.tenantUsername;
+            navigate(`/${tenantPath}`, { replace: true });
+        }
+    }, [user, loading, navigate]);
+
+    if (loading) {
+        return (
+            <div className="h-screen w-screen flex justify-center items-center bg-slate-900">
+                <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -255,6 +270,18 @@ const Login = () => {
                                 >
                                     <span>{isLoading ? 'Verifying...' : 'Access Dashboard'}</span>
                                 </button>
+                                <div className="mt-3 text-center">
+                                    <p className="text-[10px] sm:text-xs text-gray-600">
+                                        Don't have an account?{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/register')}
+                                            className="text-emerald-600 font-bold hover:text-emerald-700 hover:underline transition-colors"
+                                        >
+                                            Register here
+                                        </button>
+                                    </p>
+                                </div>
                             </form>
 
                             {/* Terms - Smaller text on mobile */}
@@ -448,7 +475,7 @@ const Login = () => {
                             strokeWidth="3"
                             fill="none"
                         />
-                        
+
                         {/* Graduation Cap Icon */}
                         <g>
                             <path d="M 80 100 L 110 85 L 140 100 L 110 115 Z" fill="#1F2937">
@@ -522,7 +549,7 @@ const Login = () => {
                     </svg>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

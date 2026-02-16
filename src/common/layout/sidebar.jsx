@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useParams, useNavigate } from 'react-router-dom';
 import {
     Squares2X2Icon,
     AcademicCapIcon,
@@ -21,9 +21,18 @@ import { useAuth } from '../context/authcontext';
 
 const Sidebar = ({ closeSidebar }) => { // closeSidebar prop Layout se aayega
     const { tenantName } = useParams();
-    const { planId } = useAuth();
+    const { planId, user } = useAuth();
+    const navigate = useNavigate();
     const { data, isLoading } = useGetdomainQuery(planId);
     const [expandedDomains, setExpandedDomains] = useState({});
+
+    useEffect(() => {
+        // If user is logged in but visiting another tenant's URL, redirect them to their own dashboard
+        if (user && tenantName && user.tenantUsername?.toLowerCase() !== tenantName.toLowerCase()) {
+            console.warn(`Session mismatch: Logged in as ${user.tenantUsername} but visiting ${tenantName}. Redirecting...`);
+            navigate(`/${user.tenantUsername}`, { replace: true });
+        }
+    }, [user, tenantName, navigate]);
 
     const toggleDomain = (domainId) => {
         setExpandedDomains(prev => ({
@@ -50,8 +59,25 @@ const Sidebar = ({ closeSidebar }) => { // closeSidebar prop Layout se aayega
         const name = featureName?.toUpperCase() || '';
         if (name.includes('STUDENT')) return 'student';
         if (name.includes('TEACHER')) return 'teacher';
-        if (name.includes('ROOM')) return 'room';
-        return name.toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-');
+
+        // School & Academic Features
+        if (name.includes('EXAM') && name.includes('DATESHEET')) return 'exam-datesheet';
+        if (name.includes('EXAM') && name.includes('RESULT')) return 'exam-result';
+        if (name.includes('LIBRARY') && name.includes('BOOKS')) return 'library-books-mangement'; // Matches route path
+        if (name.includes('LIBRARY')) return 'library';
+        if (name.includes('CLASS')) return 'class-management';
+        if (name.includes('SALARY')) return 'salary-manageement'; // Matches route path typo
+        if (name.includes('FEE')) return 'fee-manageemnt'; // Matches route path typo
+
+        // Hospital Features (Placeholder)
+        if (name.includes('PATIENT')) return 'patient-management';
+        if (name.includes('DOCTOR') && name.includes('APPOINTMENT')) return 'doctor-appointment';
+        if (name.includes('DOCTOR')) return 'doctor-management';
+        if (name.includes('LAB')) return 'lab-management';
+        if (name.includes('ROOM')) return 'room-management';
+
+        // Default fallback: slugify
+        return featureName.toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-');
     };
 
     return (
