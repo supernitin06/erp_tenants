@@ -57,8 +57,8 @@ const Sidebar = ({ closeSidebar }) => { // closeSidebar prop Layout se aayega
 
     const getFeaturePath = (featureName) => {
         const name = featureName?.toUpperCase() || '';
-        if (name.includes('STUDENT')) return 'student';
-        if (name.includes('TEACHER')) return 'teacher';
+        if (name.includes('STUDENT') && name.includes('MANGEMENT')) return 'student';
+        if (name.includes('TEACHER') && name.includes('ACADEMIC')) return 'teacher';
 
         // School & Academic Features
         if (name.includes('EXAM') && name.includes('DATESHEET')) return 'exam-datesheet';
