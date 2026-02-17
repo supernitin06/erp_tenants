@@ -8,7 +8,7 @@ import ClassManagement from './pages/ClassManagement';
 import SalaryManagement from './pages/SalaryManagement';
 import FeeManagement from './pages/FeeManagement';
 import TeacherManagement from './pages/Teacher';
-
+import ExamManagement from './pages/ExamManagement.jsx';
 const schoolRoutes = [
     {
         path: 'student',
@@ -18,7 +18,7 @@ const schoolRoutes = [
         path: 'teacher',
         element: <TeacherManagement />,
     },
-   
+
     {
         path: 'library',
         element: <Library />,
@@ -30,6 +30,10 @@ const schoolRoutes = [
     {
         path: 'exam-result',
         element: <ExamResult />,
+    },
+    {
+        path: 'exam-management',
+        element: <ExamManagement />,
     },
     {
         path: 'library-books-mangement',
