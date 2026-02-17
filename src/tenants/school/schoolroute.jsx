@@ -9,15 +9,8 @@ import LibraryBooks from './pages/LibraryBooks';
 import ClassManagement from './pages/ClassManagement';
 import SalaryManagement from './pages/SalaryManagement';
 import FeeManagement from './pages/FeeManagement';
-import PatientManagement from './pages/PatientManagement';
-import DoctorAppointment from './pages/DoctorAppointment';
-import DoctorManagement from './pages/DoctorManagement';
-import LabManagement from './pages/LabManagement';
-import TeacherAttendance from './pages/TeacherAttendance';
-import StudentAttendance from './pages/StudentAttendance';
-import ExamManagement from './pages/exam-management';
 
-
+import ExamManagement from './pages/ExamManagement.jsx';
 const schoolRoutes = [
     {
         path: 'student',
@@ -26,10 +19,6 @@ const schoolRoutes = [
     {
         path: 'teacher',
         element: <TeacherManagement />,
-    },
-    {
-        path: 'room-management',
-        element: <RoomManagement />,
     },
     {
         path: 'library',
@@ -48,6 +37,10 @@ const schoolRoutes = [
         element: <ExamResult />,
     },
     {
+        path: 'exam-management',
+        element: <ExamManagement />,
+    },
+    {
         path: 'library-books-mangement',
         element: <LibraryBooks />,
     },
@@ -63,30 +56,27 @@ const schoolRoutes = [
         path: 'fee-manageemnt',
         element: <FeeManagement />,
     },
-    {
-        path: 'patient-management',
-        element: <PatientManagement />,
-    },
-    {
-        path: 'doctor-appointment',
-        element: <DoctorAppointment />,
-    },
-    {
-        path: 'doctor-management',
-        element: <DoctorManagement />,
-    },
-    {
-        path: 'lab-management',
-        element: <LabManagement />,
-    },
-    {
-        path: 'teacher-attendance',
-        element: <TeacherAttendance />,
-    },
-    {
-        path: 'student-attendance',
-        element: <StudentAttendance />,
-    }
+   
+    // {
+    //     path: 'doctor-appointment',
+    //     element: <DoctorAppointment />,
+    // },
+    // {
+    //     path: 'doctor-management',
+    //     element: <DoctorManagement />,
+    // },
+    // {
+    //     path: 'lab-management',
+    //     element: <LabManagement />,
+    // },
+    // {
+    //     path: 'teacher-attendance',
+    //     element: <TeacherAttendance />,
+    // },
+    // {
+    //     path: 'student-attendance',
+    //     element: <StudentAttendance />,
+    // }
     
 ];
 
