@@ -6,7 +6,7 @@ export const apiSlice = createApi({
         baseUrl: 'https://bt-erp-backend-edww.onrender.com/api/v1', // Adjust this based on your backend URL
         credentials: 'include',
     }),
-    tagTypes: ['User', 'Domain', 'Sidebar', 'Students', 'Teachers'],
+    tagTypes: ['User', 'Domain', 'Sidebar', 'Students', 'Teachers', 'Examination'],
 
     endpoints: (builder) => ({}),
 });

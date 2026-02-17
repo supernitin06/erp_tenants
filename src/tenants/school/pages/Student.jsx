@@ -80,10 +80,9 @@ const Student = () => {
     };
 
     return (
-        /* px-4 md:px-6: Mobile pe thodi kam padding aur tablet/desktop pe zyada */
+
         <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6 md:space-y-8">
 
-            {/* Header Section: Flex direction changed for mobile */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-white">
@@ -103,7 +102,6 @@ const Student = () => {
                 </button>
             </div>
 
-            {/* Stats Card: Responsive Width */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-slate-800/70 backdrop-blur border border-slate-700 rounded-2xl p-5 md:p-6 shadow-xl">
                     <div className="flex items-center gap-4">
@@ -120,14 +118,12 @@ const Student = () => {
                 </div>
             </div>
 
-            {/* Error Message */}
             {error && (
                 <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 text-sm">
                     {error?.data?.message || 'Failed to load students'}
                 </div>
             )}
 
-            {/* Table Container: Responsive Overflow */}
             <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
                 {isLoading ? (
                     <div className="flex justify-center items-center h-60">
@@ -148,7 +144,6 @@ const Student = () => {
                         <p className="text-sm opacity-60">Try adding a new student to see them here.</p>
                     </div>
                 ) : (
-                    /* Table is already responsive inside its own component */
                     <Table
                         students={students}
                         onEdit={handleEdit}
@@ -157,7 +152,6 @@ const Student = () => {
                 )}
             </div>
 
-            {/* Modal */}
             <Form
                 isOpen={isModalOpen}
                 formData={formData}
@@ -166,6 +160,7 @@ const Student = () => {
                 onSubmit={handleSubmit}
                 initialData={selectedStudent}
                 isLoading={isCreating || isUpdating}
+                type="student"
             />
 
         </div>
