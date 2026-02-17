@@ -22,7 +22,13 @@ export const authApi = apiSlice.injectEndpoints({
                 method: 'GET',
             }),
         }),
+        logout: builder.mutation({
+            query: () => ({
+                url: 'auth/tenant/logout',
+                method: 'POST',
+            }),
+        }),
     }),
 });
 
-export const { useLoginMutation, useRegisterTenantMutation, useVerifySessionQuery } = authApi;
+export const { useLoginMutation, useRegisterTenantMutation, useVerifySessionQuery, useLogoutMutation } = authApi;

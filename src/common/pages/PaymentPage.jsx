@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/authcontext';
+import { useLogoutMutation } from '../../api/services/authapi';
+import toast, { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    CheckCircleIcon, 
-    CreditCardIcon, 
-    QrCodeIcon, 
+import {
+    CheckCircleIcon,
+    CreditCardIcon,
+    QrCodeIcon,
     ArrowLeftIcon,
     ShieldCheckIcon,
     LockClosedIcon,
@@ -14,9 +17,9 @@ import {
     ClockIcon,
     StarIcon
 } from '@heroicons/react/24/outline';
-import { 
-    HiOutlineCheckCircle, 
-    HiOutlineShieldCheck, 
+import {
+    HiOutlineCheckCircle,
+    HiOutlineShieldCheck,
     HiOutlineSparkles,
     HiOutlineClock,
     HiOutlineArrowPath,
@@ -28,10 +31,12 @@ import { FiSmartphone, FiLock, FiShield, FiZap } from 'react-icons/fi';
 const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { logout } = useAuth();
+    const [logoutApi] = useLogoutMutation();
     const { tenantName } = useParams();
-    const plan = location.state?.plan || { 
-        id: 'default', 
-        name: 'Subscription Plan', 
+    const plan = location.state?.plan || {
+        id: 'default',
+        name: 'Subscription Plan',
         price: 0,
         features: ['24/7 Support', 'Secure Payment', 'Instant Access']
     };
@@ -40,7 +45,6 @@ const PaymentPage = () => {
     const [paymentMethod, setPaymentMethod] = useState('modal');
     const [qrData, setQrData] = useState(null);
     const [polling, setPolling] = useState(false);
-    const [message, setMessage] = useState('');
     const [countdown, setCountdown] = useState(300); // 5 minutes countdown
 
     // Countdown timer for QR payment
@@ -62,20 +66,22 @@ const PaymentPage = () => {
 
     const handleModalPayment = async () => {
         setLoading(true);
-        setMessage('');
+        const toastId = toast.loading("Creating order...");
+
         try {
-            const token = localStorage.getItem('token');
             const orderResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/create-order', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ planId: plan.id })
             });
             const data = await orderResponse.json();
 
             if (!data.success) throw new Error(data.message || "Failed to create order");
+
+            toast.success("Order created successfully!", { id: toastId });
 
             const { orderId, amount, key, planName } = data;
 
@@ -87,33 +93,45 @@ const PaymentPage = () => {
                 description: `Subscription for ${planName}`,
                 order_id: orderId,
                 handler: async function (response) {
-                    const token = localStorage.getItem('token');
-                    const verifyResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature,
-                            planId: plan.id
-                        })
-                    });
+                    const verifyToastId = toast.loading("Verifying payment...");
+                    try {
+                        const verifyResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                planId: plan.id
+                            })
+                        });
 
-                    const result = await verifyResponse.json();
-                    if (result.success) {
-                        setMessage("success");
-                        setTimeout(() => navigate(`/${tenantName}/plan-history`), 2000);
-                    } else {
-                        throw new Error(result.message || "Verification failed");
+                        const result = await verifyResponse.json();
+                        if (result.success) {
+                            toast.success("Payment verified! Redirecting...", { id: verifyToastId });
+                            setTimeout(async () => {
+                                try {
+                                    await logoutApi().unwrap();
+                                } catch (e) {
+                                    console.error("Logout error", e);
+                                }
+                                logout();
+                                window.location.href = '/login?message=Please login again to continue';
+                            }, 2000);
+                        } else {
+                            throw new Error(result.message || "Verification failed");
+                        }
+                    } catch (err) {
+                        toast.error(err.message || "Verification failed", { id: verifyToastId });
                     }
                 },
                 modal: {
-                    ondismiss: function() {
+                    ondismiss: function () {
                         setLoading(false);
-                        setMessage("Payment cancelled");
+                        toast("Payment cancelled", { icon: 'ℹ️' });
                     }
                 },
                 prefill: {
@@ -121,8 +139,8 @@ const PaymentPage = () => {
                     email: "admin@tenant.com",
                     contact: "9999999999"
                 },
-                theme: { 
-                    color: "#8b5cf6" 
+                theme: {
+                    color: "#8b5cf6"
                 },
                 method: {
                     upi: true,
@@ -137,7 +155,7 @@ const PaymentPage = () => {
             rzp.open();
         } catch (error) {
             console.error("Payment failed", error);
-            setMessage("error");
+            toast.error(error.message || "Payment initiation failed", { id: toastId });
         } finally {
             setLoading(false);
         }
@@ -147,14 +165,15 @@ const PaymentPage = () => {
         setLoading(true);
         setQrData(null);
         setCountdown(300);
+        const toastId = toast.loading("Generating QR Code...");
+
         try {
-            const token = localStorage.getItem('token');
             const response = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/create-qr', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ planId: plan.id })
             });
 
@@ -162,13 +181,14 @@ const PaymentPage = () => {
             if (data.success) {
                 setQrData(data);
                 setPaymentMethod('qr');
+                toast.success("QR Code Generated! Scan to pay.", { id: toastId });
                 startPolling(data.qr_id);
             } else {
                 throw new Error(data.message || "Failed to create QR code");
             }
         } catch (error) {
             console.error("QR Error:", error);
-            setMessage("error");
+            toast.error(error.message || "Failed to generate QR Code", { id: toastId });
         } finally {
             setLoading(false);
         }
@@ -176,21 +196,27 @@ const PaymentPage = () => {
 
     const startPolling = (qrId) => {
         setPolling(true);
+        // We won't toast on every poll tick, only on success/outcome
         const interval = setInterval(async () => {
             try {
-                const token = localStorage.getItem('token');
                 const response = await fetch(`https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/check-status/${qrId}?planId=${plan.id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 });
                 const data = await response.json();
 
                 if (data.success) {
                     clearInterval(interval);
                     setPolling(false);
-                    setMessage("success");
-                    setTimeout(() => navigate(`/${tenantName}/plan-history`), 2000);
+                    toast.success("Payment Received! Redirecting...");
+                    setTimeout(async () => {
+                        try {
+                            await logoutApi().unwrap();
+                        } catch (e) {
+                            console.error("Logout error", e);
+                        }
+                        logout();
+                        window.location.href = '/login?message=Please login again to continue';
+                    }, 2000);
                 }
             } catch (error) {
                 console.error("Polling error", error);
@@ -226,13 +252,14 @@ const PaymentPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 py-12 px-4 relative overflow-hidden">
+            <Toaster position="top-center" reverseOrder={false} />
             {/* Decorative elements */}
             <motion.div
-                animate={{ 
+                animate={{
                     scale: [1, 1.2, 1],
                     rotate: [0, 90, 0],
                 }}
-                transition={{ 
+                transition={{
                     duration: 20,
                     repeat: Infinity,
                     ease: "linear"
@@ -240,11 +267,11 @@ const PaymentPage = () => {
                 className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-r from-violet-200 to-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
             />
             <motion.div
-                animate={{ 
+                animate={{
                     scale: [1, 1.3, 1],
                     rotate: [0, -90, 0],
                 }}
-                transition={{ 
+                transition={{
                     duration: 25,
                     repeat: Infinity,
                     ease: "linear"
@@ -257,15 +284,15 @@ const PaymentPage = () => {
                 <motion.div
                     key={i}
                     className="absolute w-1 h-1 bg-violet-300 rounded-full"
-                    initial={{ 
+                    initial={{
                         x: Math.random() * window.innerWidth,
-                        y: Math.random() * window.innerHeight 
+                        y: Math.random() * window.innerHeight
                     }}
-                    animate={{ 
+                    animate={{
                         y: [null, -50, 50, -50],
                         x: [null, 50, -50, 50]
                     }}
-                    transition={{ 
+                    transition={{
                         duration: 15 + Math.random() * 10,
                         repeat: Infinity,
                         delay: Math.random() * 5
@@ -402,11 +429,10 @@ const PaymentPage = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setPaymentMethod('modal')}
-                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
-                                            paymentMethod === 'modal' 
-                                            ? 'border-violet-500 bg-violet-50' 
+                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'modal'
+                                            ? 'border-violet-500 bg-violet-50'
                                             : 'border-slate-200 hover:border-violet-200 bg-white'
-                                        }`}
+                                            }`}
                                     >
                                         {paymentMethod === 'modal' && (
                                             <motion.div
@@ -428,11 +454,10 @@ const PaymentPage = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => setPaymentMethod('qr')}
-                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${
-                                            paymentMethod === 'qr' 
-                                            ? 'border-violet-500 bg-violet-50' 
+                                        className={`relative p-4 rounded-2xl border-2 transition-all overflow-hidden ${paymentMethod === 'qr'
+                                            ? 'border-violet-500 bg-violet-50'
                                             : 'border-slate-200 hover:border-violet-200 bg-white'
-                                        }`}
+                                            }`}
                                     >
                                         {paymentMethod === 'qr' && (
                                             <motion.div
@@ -473,7 +498,7 @@ const PaymentPage = () => {
                                                 <p className="text-slate-600 mb-6">
                                                     You'll be redirected to our secure payment partner, Razorpay.
                                                 </p>
-                                                
+
                                                 <motion.button
                                                     whileHover={{ scale: 1.02 }}
                                                     whileTap={{ scale: 0.98 }}
@@ -575,14 +600,14 @@ const PaymentPage = () => {
                                                         <div className="bg-white p-4 rounded-3xl shadow-2xl border-4 border-violet-100">
                                                             <img src={qrData.image_url} alt="UPI QR Code" className="w-56 h-56" />
                                                         </div>
-                                                        
+
                                                         {/* Scanning Animation */}
                                                         <motion.div
-                                                            animate={{ 
+                                                            animate={{
                                                                 y: [0, 100, 0],
                                                                 opacity: [0, 1, 0]
                                                             }}
-                                                            transition={{ 
+                                                            transition={{
                                                                 duration: 2,
                                                                 repeat: Infinity,
                                                                 ease: "linear"
@@ -636,56 +661,7 @@ const PaymentPage = () => {
                                     )}
                                 </AnimatePresence>
 
-                                {/* Message Display */}
-                                <AnimatePresence>
-                                    {message && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            className={`mt-6 p-4 rounded-xl ${
-                                                message === 'success' 
-                                                ? 'bg-emerald-50 border border-emerald-200' 
-                                                : message === 'error'
-                                                ? 'bg-rose-50 border border-rose-200'
-                                                : 'bg-amber-50 border border-amber-200'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                {message === 'success' ? (
-                                                    <>
-                                                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                                                            <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-emerald-800">Payment Successful!</p>
-                                                            <p className="text-sm text-emerald-600">Redirecting to plan history...</p>
-                                                        </div>
-                                                    </>
-                                                ) : message === 'error' ? (
-                                                    <>
-                                                        <div className="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center">
-                                                            <HiOutlineCheckCircle className="w-5 h-5 text-rose-600" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-rose-800">Payment Failed</p>
-                                                            <p className="text-sm text-rose-600">Please try again or use another method</p>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                                                            <ClockIcon className="w-5 h-5 text-amber-600" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-amber-800">{message}</p>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                {/* Message Display Removed - Replaced by Toasts */}
 
                                 {/* Back Button */}
                                 <motion.button

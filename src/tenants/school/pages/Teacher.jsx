@@ -33,27 +33,21 @@ import {
 // Teacher Form Modal Component
 const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
-    subject: '',
-    department: '',
+    gender: '',
+    dateOfBirth: '',
     qualification: '',
     experience: '',
     joiningDate: '',
-    salary: '',
     address: '',
-    status: 'active',
-    courses: [],
   });
-
-  const [selectedCourses, setSelectedCourses] = useState([]);
-  const [courseInput, setCourseInput] = useState('');
 
   useEffect(() => {
     if (teacher && mode === 'edit') {
       setFormData(teacher);
-      setSelectedCourses(teacher.courses || []);
     } else {
       resetForm();
     }
@@ -61,41 +55,22 @@ const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       phone: '',
-      subject: '',
-      department: '',
+      gender: '',
+      dateOfBirth: '',
       qualification: '',
       experience: '',
       joiningDate: '',
-      salary: '',
       address: '',
-      status: 'active',
-      courses: [],
     });
-    setSelectedCourses([]);
-    setCourseInput('');
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddCourse = () => {
-    if (courseInput.trim()) {
-      const newCourses = [...selectedCourses, courseInput.trim()];
-      setSelectedCourses(newCourses);
-      setFormData(prev => ({ ...prev, courses: newCourses }));
-      setCourseInput('');
-    }
-  };
-
-  const handleRemoveCourse = (index) => {
-    const newCourses = selectedCourses.filter((_, i) => i !== index);
-    setSelectedCourses(newCourses);
-    setFormData(prev => ({ ...prev, courses: newCourses }));
   };
 
   const handleSubmit = (e) => {
@@ -108,16 +83,16 @@ const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-slate-800 p-6 border-b border-slate-700 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-slate-800 p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {mode === 'add' ? 'Add New Teacher' : 'Edit Teacher'}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <FiX className="w-6 h-6 text-slate-400" />
+            <FiX className="w-6 h-6 text-slate-500 dark:text-slate-400" />
           </button>
         </div>
 
@@ -125,55 +100,96 @@ const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Personal Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Personal Information</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Personal Information</h3>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="Dr. John Doe"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">First Name *</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    placeholder="John"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Last Name *</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    placeholder="Doe"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Email *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Email *</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="john@school.edu"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Phone *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Phone *</label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="+1 234 567 890"
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Gender</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleChange}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Address</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Address</label>
                 <textarea
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="Full address"
                 />
               </div>
@@ -181,151 +197,52 @@ const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
 
             {/* Professional Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Professional Information</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Professional Information</h3>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Department *</label>
-                <select
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">Select Department</option>
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Biology">Biology</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="English">English</option>
-                  <option value="History">History</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Primary Subject *</label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="e.g., Advanced Mathematics"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Qualification</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Qualification</label>
                 <input
                   type="text"
                   name="qualification"
                   value={formData.qualification}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="Ph.D. in Mathematics"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Experience (years)</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Experience (years)</label>
                   <input
-                    type="number"
+                    type="text"
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                    placeholder="10"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    placeholder="5 Years"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">Joining Date</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Joining Date</label>
                   <input
                     type="date"
                     name="joiningDate"
                     value={formData.joiningDate}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Salary ($/month)</label>
-                <input
-                  type="number"
-                  name="salary"
-                  value={formData.salary}
-                  onChange={handleChange}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="5000"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Status</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="active">Active</option>
-                  <option value="away">Away</option>
-                  <option value="busy">Busy</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Courses Section */}
-          <div className="border-t border-slate-700 pt-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Courses Teaching</h3>
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={courseInput}
-                onChange={(e) => setCourseInput(e.target.value)}
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                placeholder="Add a course (e.g., Calculus I)"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCourse())}
-              />
-              <button
-                type="button"
-                onClick={handleAddCourse}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Add
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {selectedCourses.map((course, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-slate-700 rounded-full text-sm text-slate-300 flex items-center gap-2"
-                >
-                  {course}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveCourse(index)}
-                    className="text-slate-400 hover:text-red-400"
-                  >
-                    <FiX className="w-4 h-4" />
-                  </button>
-                </span>
-              ))}
             </div>
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-slate-700">
+          <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+              className="px-6 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>
@@ -348,74 +265,55 @@ const TeacherDetailsModal = ({ isOpen, onClose, teacher }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl">
-        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">Teacher Details</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-2xl">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Teacher Details</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
           >
-            <FiX className="w-6 h-6 text-slate-400" />
+            <FiX className="w-6 h-6 text-slate-500 dark:text-slate-400" />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-2xl">
-              {teacher.name.split(' ').map(n => n[0]).join('')}
+              {teacher.firstName?.[0]}{teacher.lastName?.[0]}
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-white">{teacher.name}</h3>
-              <p className="text-slate-400">{teacher.subject} • {teacher.department}</p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{teacher.firstName} {teacher.lastName}</h3>
+              <p className="text-xs text-slate-500 mb-1">ID: {teacher.teacherId}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
               <p className="text-sm text-slate-500">Email</p>
-              <p className="text-white">{teacher.email}</p>
+              <p className="text-slate-900 dark:text-white">{teacher.email}</p>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
               <p className="text-sm text-slate-500">Phone</p>
-              <p className="text-white">{teacher.phone}</p>
+              <p className="text-slate-900 dark:text-white">{teacher.phone}</p>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
               <p className="text-sm text-slate-500">Qualification</p>
-              <p className="text-white">{teacher.qualification || 'N/A'}</p>
+              <p className="text-slate-900 dark:text-white">{teacher.qualification || 'N/A'}</p>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
               <p className="text-sm text-slate-500">Experience</p>
-              <p className="text-white">{teacher.experience || 'N/A'} years</p>
+              <p className="text-slate-900 dark:text-white">{teacher.experience || 'N/A'}</p>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg">
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
               <p className="text-sm text-slate-500">Joining Date</p>
-              <p className="text-white">{teacher.joiningDate || 'N/A'}</p>
-            </div>
-            <div className="bg-slate-900/50 p-4 rounded-lg">
-              <p className="text-sm text-slate-500">Salary</p>
-              <p className="text-white">${teacher.salary || 'N/A'}/month</p>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-semibold text-white mb-3">Courses Teaching</h4>
-            <div className="flex flex-wrap gap-2">
-              {teacher.courses && teacher.courses.length > 0 ? (
-                teacher.courses.map((course, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-slate-700 rounded-full text-sm text-slate-300">
-                    {course}
-                  </span>
-                ))
-              ) : (
-                <p className="text-slate-500">No courses assigned</p>
-              )}
+              <p className="text-slate-900 dark:text-white">{teacher.joiningDate || 'N/A'}</p>
             </div>
           </div>
 
           {teacher.address && (
             <div>
-              <h4 className="text-lg font-semibold text-white mb-2">Address</h4>
-              <p className="text-slate-300">{teacher.address}</p>
+              <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Address</h4>
+              <p className="text-slate-600 dark:text-slate-300">{teacher.address}</p>
             </div>
           )}
         </div>
@@ -430,19 +328,19 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, teacherName }) =>
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-md">
         <div className="p-6">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
             <FiAlertCircle className="w-8 h-8 text-red-500" />
           </div>
-          <h3 className="text-xl font-bold text-white text-center mb-2">Delete Teacher</h3>
-          <p className="text-slate-400 text-center mb-6">
-            Are you sure you want to delete <span className="text-white font-medium">{teacherName}</span>? This action cannot be undone.
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-2">Delete Teacher</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-center mb-6">
+            Are you sure you want to delete <span className="text-slate-900 dark:text-white font-medium">{teacherName}</span>?
           </p>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+              className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>
@@ -465,14 +363,14 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, teacherName }) =>
 // Main Teacher Management Component
 const TeacherManagement = () => {
   const { tenantName } = useParams();
-  const { data: teachers = [], isLoading } = useGetTeachersQuery(tenantName);
+  const { data: teachersData, isLoading, error: queryError } = useGetTeachersQuery(tenantName, {
+    skip: !tenantName,
+  });
   const [createTeacher] = useCreateTeacherMutation();
   const [updateTeacher] = useUpdateTeacherMutation();
   const [deleteTeacher] = useDeleteTeacherMutation();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -480,40 +378,41 @@ const TeacherManagement = () => {
   const [formMode, setFormMode] = useState('add');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Debugging: Log data to console to verify API response and Tenant
+  useEffect(() => {
+    console.log("Teacher Page - Tenant:", tenantName);
+    console.log("Teacher Page - Data:", teachersData);
+    console.log("Teacher Page - Error:", queryError);
+  }, [tenantName, teachersData, queryError]);
+
+  const teachers = React.useMemo(() => {
+    if (!teachersData) return [];
+    if (Array.isArray(teachersData)) return teachersData;
+    if (Array.isArray(teachersData.teachers)) return teachersData.teachers;
+    if (Array.isArray(teachersData.data)) return teachersData.data;
+    return [];
+  }, [teachersData]);
+
   // Filter teachers using useMemo (prevents render loops)
   const filteredTeachers = React.useMemo(() => {
-    let filtered = teachers || [];
+    let filtered = teachers;
 
     if (searchTerm) {
       filtered = filtered.filter(teacher =>
-        teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (teacher.firstName + ' ' + teacher.lastName).toLowerCase().includes(searchTerm.toLowerCase()) || 
+        teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        teacher.teacherId?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    if (selectedDepartment !== 'all') {
-      filtered = filtered.filter(teacher => teacher.department === selectedDepartment);
-    }
-
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(teacher => teacher.status === selectedStatus);
-    }
-
     return filtered;
-  }, [teachers, searchTerm, selectedDepartment, selectedStatus]);
+  }, [teachers, searchTerm]);
 
   const handleAddTeacher = async (newTeacher) => {
     try {
       const teacherData = {
         ...newTeacher,
-        experience: newTeacher.experience ? Number(newTeacher.experience) : 0,
-        salary: newTeacher.salary ? Number(newTeacher.salary) : 0,
         joiningDate: newTeacher.joiningDate || null,
-        avatar: newTeacher.name.split(' ').map(n => n[0]).join(''),
-        rating: 4.5,
-        students: 0,
       };
       await createTeacher({ tenantName, data: teacherData }).unwrap();
     } catch (error) {
@@ -526,11 +425,9 @@ const TeacherManagement = () => {
     try {
       const teacherData = {
         ...updatedTeacher,
-        experience: updatedTeacher.experience ? Number(updatedTeacher.experience) : 0,
-        salary: updatedTeacher.salary ? Number(updatedTeacher.salary) : 0,
         joiningDate: updatedTeacher.joiningDate || null,
       };
-      await updateTeacher({ tenantName, id: updatedTeacher.id, data: teacherData }).unwrap();
+      await updateTeacher({ tenantName, id: updatedTeacher._id || updatedTeacher.id || updatedTeacher.teacherId, data: teacherData }).unwrap();
     } catch (error) {
       console.error("Failed to update teacher", error);
       alert(error?.data?.message || "Failed to update teacher");
@@ -539,7 +436,7 @@ const TeacherManagement = () => {
 
   const handleDeleteTeacher = async (id) => {
     try {
-      await deleteTeacher({ tenantName, id }).unwrap();
+      await deleteTeacher({ tenantName, id: id }).unwrap();
     } catch (error) {
       console.error("Failed to delete teacher", error);
       alert("Failed to delete teacher");
@@ -548,22 +445,16 @@ const TeacherManagement = () => {
 
   const stats = [
     { label: 'Total Teachers', value: teachers.length.toString(), icon: FiUsers, color: 'blue', change: '+2 this month' },
-    { label: 'Active Teachers', value: teachers.filter(t => t.status === 'active').length.toString(), icon: FiCheck, color: 'green', change: 'Currently teaching' },
-    { label: 'Departments', value: [...new Set(teachers.map(t => t.department))].length.toString(), icon: FiBookOpen, color: 'purple', change: '8 subjects' },
-    { label: 'Avg Rating', value: (teachers.reduce((acc, t) => acc + (t.rating || 0), 0) / teachers.length).toFixed(1) + ' ★', icon: FiAward, color: 'yellow', change: 'Excellent' },
   ];
 
-  const departments = ['all', ...new Set(teachers.map(t => t.department))];
-  const statuses = ['all', 'active', 'away', 'busy', 'inactive'];
-
   return (
-    <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 min-h-screen">
+    <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
           Teacher Management
         </h1>
-        <p className="text-slate-400">Complete CRUD operations for faculty management</p>
+        <p className="text-slate-500 dark:text-slate-400">Complete CRUD operations for faculty management</p>
       </div>
 
       {/* Stats Grid */}
@@ -571,18 +462,18 @@ const TeacherManagement = () => {
         {stats.map((stat, index) => (
           <div
             key={index}
-            className="bg-slate-800/50 backdrop-blur-sm p-6 rounded-xl border border-slate-700 hover:border-slate-600 transition-all group"
+            className="bg-white dark:bg-slate-800/50 backdrop-blur-sm p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`p-3 rounded-lg bg-${stat.color}-500/10 text-${stat.color}-400`}>
                 <stat.icon className="w-6 h-6" />
               </div>
-              <span className="text-xs font-medium text-slate-500 group-hover:text-slate-400 transition-colors">
+              <span className="text-xs font-medium text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-400 transition-colors">
                 {stat.change}
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">{stat.value}</h3>
-            <p className="text-sm text-slate-400">{stat.label}</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -591,24 +482,17 @@ const TeacherManagement = () => {
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex-1 min-w-[300px]">
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search teachers by name, subject, department..."
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-slate-300 placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="Search teachers by name, email, or ID..."
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-3 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
           </div>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 hover:border-slate-600 transition-all flex items-center gap-2"
-          >
-            <FiFilter className="w-4 h-4" />
-            Filters
-          </button>
           <button
             onClick={() => {
               setFormMode('add');
@@ -623,39 +507,18 @@ const TeacherManagement = () => {
         </div>
       </div>
 
-      {/* Filter Panel */}
-      {showFilters && (
-        <div className="bg-slate-800/70 backdrop-blur-sm rounded-xl border border-slate-700 p-4 mb-6 animate-in slide-in-from-top-5 duration-300">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Department</label>
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-              >
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>
-                    {dept === 'all' ? 'All Departments' : dept}
-                  </option>
-                ))}
-              </select>
+      {/* Error Display */}
+      {queryError && (
+        <div className="bg-rose-500/10 backdrop-blur-sm rounded-xl border border-rose-500/20 p-4 text-rose-500 dark:text-rose-400 text-sm flex items-center gap-3 mb-6">
+            <div className="p-2 bg-rose-500/20 rounded-lg">
+                <FiAlertCircle className="h-5 w-5" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Status</label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-              >
-                {statuses.map(status => (
-                  <option key={status} value={status}>
-                    {status === 'all' ? 'All Statuses' : status.charAt(0).toUpperCase() + status.slice(1)}
-                  </option>
-                ))}
-              </select>
+                <p className="font-bold">Error: {queryError.status}</p>
+                <p>
+                  {queryError?.data?.message || 'Failed to load teachers. Please check the API endpoint and server status.'}
+                </p>
             </div>
-          </div>
         </div>
       )}
 
@@ -663,69 +526,32 @@ const TeacherManagement = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredTeachers.map((teacher) => (
           <div
-            key={teacher.id}
-            className="bg-slate-800/70 backdrop-blur-sm rounded-xl border border-slate-700 p-5 hover:border-slate-600 transition-all group"
+            key={teacher._id || teacher.id || teacher.teacherId}
+            className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-slate-300 dark:hover:border-slate-600 transition-all group"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                  {teacher.avatar}
+                  {teacher.firstName?.[0]}{teacher.lastName?.[0]}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white text-lg">{teacher.name}</h3>
-                  <p className="text-sm text-slate-400 flex items-center gap-1">
-                    <FiBookOpen className="w-3 h-3" />
-                    {teacher.subject}
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-lg">{teacher.firstName} {teacher.lastName}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                    {teacher.qualification}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                  ${teacher.status === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : ''}
-                  ${teacher.status === 'away' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : ''}
-                  ${teacher.status === 'busy' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : ''}
-                  ${teacher.status === 'inactive' ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30' : ''}
-                `}>
-                  {teacher.status}
-                </span>
-              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-3">
-              <div className="text-sm">
-                <span className="text-slate-500">Students</span>
-                <p className="text-white font-medium">{teacher.students || 0}</p>
-              </div>
-              <div className="text-sm">
-                <span className="text-slate-500">Rating</span>
-                <p className="text-yellow-400 font-medium flex items-center gap-1">
-                  <FiStar className="w-3 h-3 fill-current" /> {teacher.rating || 'N/A'}
-                </p>
-              </div>
+            <div className="grid grid-cols-1 gap-4 mb-3">
               <div className="text-sm">
                 <span className="text-slate-500">Experience</span>
-                <p className="text-white font-medium">{teacher.experience || 0} yrs</p>
+                <p className="text-slate-900 dark:text-white font-medium">{teacher.experience || '0 Years'}</p>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-3">
-              {teacher.courses && teacher.courses.slice(0, 3).map((course, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-1 bg-slate-700/50 rounded-md text-xs text-slate-300 border border-slate-600"
-                >
-                  {course}
-                </span>
-              ))}
-              {teacher.courses && teacher.courses.length > 3 && (
-                <span className="px-2 py-1 bg-slate-700/50 rounded-md text-xs text-slate-300 border border-slate-600">
-                  +{teacher.courses.length - 3} more
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-700">
-              <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <FiMail className="w-4 h-4" />
                 <span className="truncate max-w-[150px]">{teacher.email}</span>
               </div>
@@ -735,7 +561,7 @@ const TeacherManagement = () => {
                     setSelectedTeacher(teacher);
                     setIsDetailsModalOpen(true);
                   }}
-                  className="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-blue-400"
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-blue-400"
                   title="View Details"
                 >
                   <FiEye className="w-4 h-4" />
@@ -746,7 +572,7 @@ const TeacherManagement = () => {
                     setFormMode('edit');
                     setIsFormModalOpen(true);
                   }}
-                  className="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-purple-400"
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-purple-400"
                   title="Edit"
                 >
                   <FiEdit2 className="w-4 h-4" />
@@ -756,7 +582,7 @@ const TeacherManagement = () => {
                     setSelectedTeacher(teacher);
                     setIsDeleteModalOpen(true);
                   }}
-                  className="p-2 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-red-400"
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-red-400"
                   title="Delete"
                 >
                   <FiTrash2 className="w-4 h-4" />
@@ -770,11 +596,11 @@ const TeacherManagement = () => {
       {/* Empty State */}
       {filteredTeachers.length === 0 && (
         <div className="text-center py-12">
-          <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-slate-800 flex items-center justify-center">
-            <FiUsers className="w-12 h-12 text-slate-600" />
+          <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center">
+            <FiUsers className="w-12 h-12 text-slate-400 dark:text-slate-600" />
           </div>
-          <h3 className="text-xl font-semibold text-white mb-2">No teachers found</h3>
-          <p className="text-slate-400 mb-6">Try adjusting your filters or add a new teacher</p>
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">No teachers found</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">Try adjusting your filters or add a new teacher</p>
           <button
             onClick={() => {
               setFormMode('add');
@@ -807,8 +633,8 @@ const TeacherManagement = () => {
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={() => selectedTeacher && handleDeleteTeacher(selectedTeacher.id)}
-        teacherName={selectedTeacher?.name}
+        onConfirm={() => selectedTeacher && handleDeleteTeacher(selectedTeacher._id || selectedTeacher.id || selectedTeacher.teacherId)}
+        teacherName={selectedTeacher ? `${selectedTeacher.firstName} ${selectedTeacher.lastName}` : ''}
       />
     </div>
   );

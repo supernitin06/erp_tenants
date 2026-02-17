@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '../context/authcontext';
 import { useLoginMutation } from '../../api/services/authapi';
 
@@ -8,15 +9,29 @@ const Login = () => {
     const [password, setPassword] = useState('Abc@123#');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { login: setAuthContext, user, loading } = useAuth();
     const [loginApi, { isLoading }] = useLoginMutation();
 
     useEffect(() => {
         if (!loading && user) {
             const tenantPath = user.tenantUsername;
-            navigate(`/${tenantPath}`, { replace: true });
+            if (user.subscription_planId && user.isActive) {
+                navigate(`/${tenantPath}`, { replace: true });
+            } else {
+                navigate(`/${tenantPath}/pricing`, { replace: true });
+            }
         }
     }, [user, loading, navigate]);
+
+    useEffect(() => {
+        const msg = searchParams.get('message');
+        if (msg) {
+            toast.error(msg, { duration: 5000, icon: '🔒' });
+            // Clean up URL
+            navigate('/login', { replace: true });
+        }
+    }, [searchParams, navigate]);
 
     if (loading) {
         return (
@@ -41,10 +56,9 @@ const Login = () => {
                 planId: tenant.subscription_planId
             });
 
-            const { is_plan_assigned } = tenant;
             const tenantPath = tenant.tenantUsername;
 
-            if (is_plan_assigned) {
+            if (tenant.subscription_planId && tenant.isActive) {
                 navigate(`/${tenantPath}`);
             } else {
                 navigate(`/${tenantPath}/pricing`);
@@ -57,6 +71,7 @@ const Login = () => {
 
     return (
         <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex justify-center items-center p-2 sm:p-3 md:p-4">
+            <Toaster position="top-center" reverseOrder={false} />
             <div className="w-full max-w-6xl h-[95vh] sm:h-[90vh] md:h-[85vh] lg:h-[80vh] max-h-[700px] bg-white bg-opacity-40 backdrop-blur-lg shadow-2xl rounded-2xl sm:rounded-3xl flex flex-col lg:flex-row overflow-hidden border border-white border-opacity-30">
                 {/* Left Side: Form with Glass Effect - No Scroll */}
                 <div className="w-full lg:w-1/2 h-full p-4 sm:p-5 md:p-6 lg:p-8 flex flex-col justify-center bg-white bg-opacity-20 backdrop-blur-md">

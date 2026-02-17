@@ -8,13 +8,13 @@ const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
-        <div className="flex min-h-screen bg-[#0B1120] relative">
+        <div className="flex min-h-screen bg-slate-50 dark:bg-[#0B1120] relative transition-colors duration-300">
             <div className={`
                 fixed inset-y-0 left-0 z-50 transform 
                 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} 
                 md:translate-x-0 md:static md:inset-0 
                 transition-transform duration-300 ease-in-out
-                w-64 bg-[#0B1120] border-r border-slate-800
+                w-80 bg-white dark:bg-[#0B1120] border-r border-slate-200 dark:border-slate-800
             `}>
                 <Sidebar closeSidebar={() => setIsSidebarOpen(false)} />
             </div>

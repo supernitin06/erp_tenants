@@ -8,7 +8,8 @@ const Form = ({
     onClose,
     onSubmit,
     initialData,
-    isLoading
+    isLoading,
+    title = "Item"
 }) => {
 
     useEffect(() => {
@@ -50,9 +51,9 @@ const Form = ({
     if (!isOpen) return null;
 
     const inputStyle =
-        "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition";
+        "w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition";
 
-    const labelStyle = "block text-sm font-medium text-slate-300 mb-1";
+    const labelStyle = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1";
 
     const formatLabel = (key) => {
         return key
@@ -63,18 +64,18 @@ const Form = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
 
-            <div className="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-fadeIn">
+            <div className="w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl animate-fadeIn">
 
                 {/* Header */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-slate-700">
-                    <h2 className="text-xl font-semibold text-white">
-                        {initialData ? 'Edit Student' : 'Add New Student'}
+                <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                        {initialData ? `Edit ${title}` : `Add New ${title}`}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-slate-800 transition"
+                        className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                     >
-                        <XMarkIcon className="h-5 w-5 text-slate-400 hover:text-white" />
+                        <XMarkIcon className="h-5 w-5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" />
                     </button>
                 </div>
 
@@ -86,10 +87,10 @@ const Form = ({
 
                     {/* Section Title */}
                     <div>
-                        <h3 className="text-sm uppercase tracking-wider text-cyan-400">
-                            Student Information
+                        <h3 className="text-sm uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+                            {title} Information
                         </h3>
-                        <div className="h-px bg-slate-700 mt-2"></div>
+                        <div className="h-px bg-slate-200 dark:bg-slate-700 mt-2"></div>
                     </div>
 
                     {/* Grid Layout */}
@@ -147,6 +148,8 @@ const Form = ({
                                                     ? "email"
                                                     : key.toLowerCase().includes("phone")
                                                         ? "tel"
+                                                    : key.toLowerCase().includes("students")
+                                                        ? "number"
                                                         : "text"
                                         }
                                         name={key}
@@ -161,11 +164,11 @@ const Form = ({
                     </div>
 
                     {/* Buttons */}
-                    <div className="flex justify-end gap-4 pt-6 border-t border-slate-700">
+                    <div className="flex justify-end gap-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-5 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-800 transition"
+                            className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                         >
                             Cancel
                         </button>
@@ -178,8 +181,8 @@ const Form = ({
                             {isLoading
                                 ? "Saving..."
                                 : initialData
-                                    ? "Update Student"
-                                    : "Create Student"}
+                                    ? `Update ${title}`
+                                    : `Create ${title}`}
                         </button>
                     </div>
 

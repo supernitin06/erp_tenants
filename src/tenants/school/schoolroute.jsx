@@ -2,6 +2,20 @@ import React from 'react';
 import TeacherManagement from './pages/Teacher';
 import Student from './pages/Student';
 import Library from './pages/Library';
+import RoomManagement from './pages/RoomManagement';
+import ExamDatesheet from './pages/ExamDatesheet';
+import ExamResult from './pages/ExamResult';
+import LibraryBooks from './pages/LibraryBooks';
+import ClassManagement from './pages/ClassManagement';
+import SalaryManagement from './pages/SalaryManagement';
+import FeeManagement from './pages/FeeManagement';
+import PatientManagement from './pages/PatientManagement';
+import DoctorAppointment from './pages/DoctorAppointment';
+import DoctorManagement from './pages/DoctorManagement';
+import LabManagement from './pages/LabManagement';
+import TeacherAttendance from './pages/TeacherAttendance';
+import StudentAttendance from './pages/StudentAttendance';
+import ExamManagement from './pages/exam-management';
 
 
 const schoolRoutes = [
@@ -14,16 +28,8 @@ const schoolRoutes = [
         element: <TeacherManagement />,
     },
     {
-        path: 'room',
-        element: (
-            <div className="animate-in fade-in duration-500">
-                <h1 className="text-3xl font-bold text-white mb-4">Classroom Management</h1>
-                <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
-                    <p className="text-slate-400">Manage school rooms here.</p>
-                </div>
-            </div>
-        ),
-
+        path: 'room-management',
+        element: <RoomManagement />,
     },
     {
         path: 'library',
@@ -31,28 +37,57 @@ const schoolRoutes = [
     },
     {
         path: 'exam-datesheet',
-        element: <div className="p-6 text-white"><h1>Exam Datesheet Module</h1></div>,
+        element: <ExamDatesheet />,
+    },
+    {
+        path: 'exam-management',
+        element: <ExamManagement />,
     },
     {
         path: 'exam-result',
-        element: <div className="p-6 text-white"><h1>Exam Result Module</h1></div>,
+        element: <ExamResult />,
     },
     {
         path: 'library-books-mangement',
-        element: <div className="p-6 text-white"><h1>Library Books Management</h1></div>,
+        element: <LibraryBooks />,
     },
     {
         path: 'class-management',
-        element: <div className="p-6 text-white"><h1>Class Management</h1></div>,
+        element: <ClassManagement />,
     },
     {
         path: 'salary-manageement',
-        element: <div className="p-6 text-white"><h1>Salary Management</h1></div>,
+        element: <SalaryManagement />,
     },
     {
         path: 'fee-manageemnt',
-        element: <div className="p-6 text-white"><h1>Fee Management</h1></div>,
+        element: <FeeManagement />,
+    },
+    {
+        path: 'patient-management',
+        element: <PatientManagement />,
+    },
+    {
+        path: 'doctor-appointment',
+        element: <DoctorAppointment />,
+    },
+    {
+        path: 'doctor-management',
+        element: <DoctorManagement />,
+    },
+    {
+        path: 'lab-management',
+        element: <LabManagement />,
+    },
+    {
+        path: 'teacher-attendance',
+        element: <TeacherAttendance />,
+    },
+    {
+        path: 'student-attendance',
+        element: <StudentAttendance />,
     }
+    
 ];
 
 export default schoolRoutes;

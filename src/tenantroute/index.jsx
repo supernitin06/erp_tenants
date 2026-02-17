@@ -49,7 +49,7 @@ const router = createBrowserRouter([
                     },
 
                     {
-                        path: ':domainName',
+                        path: ':domain',
                         children: [
                             ...schoolRoutes,
                             ...hospitalRoutes,
