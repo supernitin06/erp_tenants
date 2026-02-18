@@ -13,7 +13,7 @@ export const libraryApi = apiSlice.injectEndpoints({
             },
             providesTags: (result) =>
                 Array.isArray(result)
-                    ? [...result.map(({ id }) => ({ type: 'Library', id })), { type: 'Library', id: 'LIST' }]
+                    ? [...result.map(({ id, _id }) => ({ type: 'Library', id: id || _id })), { type: 'Library', id: 'LIST' }]
                     : [{ type: 'Library', id: 'LIST' }],
         }),
         getLibraryById: builder.query({

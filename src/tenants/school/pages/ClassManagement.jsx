@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
+import StatsCard from '../../../common/components/ui/StatsCard';
+import SearchBar from '../../../common/components/ui/SearchBar';
 import { 
     PlusIcon, 
     AcademicCapIcon,
@@ -8,9 +10,6 @@ import {
     UsersIcon,
     ClockIcon,
     BuildingLibraryIcon,
-    MagnifyingGlassIcon,
-    FunnelIcon,
-    SparklesIcon,
     GlobeAltIcon
 } from '@heroicons/react/24/outline';
 
@@ -116,6 +115,15 @@ const ClassManagement = () => {
         { key: 'time', header: 'Time' },
     ], []);
 
+    const classFields = {
+        name: { label: 'Class Name', type: 'text', icon: AcademicCapIcon, tab: 'basic' },
+        section: { label: 'Section', type: 'text', icon: BookOpenIcon, tab: 'basic' },
+        students: { label: 'Students', type: 'number', icon: UsersIcon, tab: 'basic' },
+        teacher: { label: 'Class Teacher', type: 'text', icon: UsersIcon, tab: 'basic' },
+        room: { label: 'Room Number', type: 'text', icon: BuildingLibraryIcon, tab: 'basic' },
+        time: { label: 'Timing', type: 'text', icon: ClockIcon, tab: 'basic' },
+    };
+
     const stats = [
         { 
             id: 1, 
@@ -205,29 +213,30 @@ const ClassManagement = () => {
 
                 {/* Stats Cards with Hover Effects */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                    {stats.map((stat, index) => {
-                        const Icon = stat.icon;
-                        return (
-                            <div
-                                key={stat.id}
-                                className="group relative animate-in fade-in slide-in-from-bottom-4 duration-700"
-                                style={{ animationDelay: `${index * 100}ms` }}
-                            >
-                                <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-2xl p-6 hover:scale-105 transition-all duration-300">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className={`p-3 bg-gradient-to-br ${stat.gradient} rounded-xl shadow-lg`}>
-                                            <Icon className="h-6 w-6 text-white" />
-                                        </div>
-                                        <span className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-medium">
-                                            {stat.change} this week
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{stat.label}</p>
-                                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    <StatsCard
+                        title="Total Classes"
+                        value="24"
+                        icon={AcademicCapIcon}
+                        color="blue"
+                    />
+                    <StatsCard
+                        title="Total Sections"
+                        value={new Set(classes.map(c => c.section)).size}
+                        icon={BookOpenIcon}
+                        color="purple"
+                    />
+                    <StatsCard
+                        title="Total Students"
+                        value={classes.reduce((acc, c) => acc + c.students, 0)}
+                        icon={UsersIcon}
+                        color="emerald"
+                    />
+                    <StatsCard
+                        title="Active Teachers"
+                        value={new Set(classes.map(c => c.teacher)).size}
+                        icon={ClockIcon}
+                        color="amber"
+                    />
                 </div>
 
                 {/* Tabs with Modern Design */}
@@ -255,14 +264,7 @@ const ClassManagement = () => {
                 {/* Search and Filter Section */}
                 <div className="mb-6 flex flex-col sm:flex-row gap-3">
                     <div className="flex-1 relative">
-                        <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors z-10" />
-                        <input
-                            type="text"
-                            placeholder="Search classes, teachers..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="relative w-full pl-12 pr-4 py-3.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                        />
+                        <SearchBar onSearch={(term) => setSearchTerm(term)} placeholder="Search classes, teachers..." />
                     </div>
                 </div>
 
@@ -285,6 +287,7 @@ const ClassManagement = () => {
                     initialData={formInitialData}
                     isLoading={false} // No API calls yet, so not loading
                     title="Class"
+                    fields={classFields}
                 />
             </div>
         </div>

@@ -1,27 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   FiUsers,
-  FiBookOpen,
-  FiClock,
-  FiAward,
-  FiSearch,
-  FiFilter,
-  FiPlus,
-  FiEdit2,
-  FiMail,
-  FiBarChart2,
-  FiMapPin,
-  FiStar,
-  FiCalendar,
-  FiTrash2,
-  FiEye,
-  FiX,
-  FiCheck,
+  FiUserPlus,
   FiAlertCircle,
-  FiDownload,
+  FiMail,
+  FiPhone,
+  FiCalendar,
+  FiMapPin,
+  FiEdit2,
+  FiStar,
+  FiX,
   FiUpload,
-  FiUserPlus
+  FiAward,
+  FiClock,
+  FiPlus
 } from 'react-icons/fi';
 import {
   useGetTeachersQuery,
@@ -29,235 +22,10 @@ import {
   useUpdateTeacherMutation,
   useDeleteTeacherMutation
 } from '../api/schoolApi';
-
-// Teacher Form Modal Component
-const TeacherFormModal = ({ isOpen, onClose, teacher, onSubmit, mode }) => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    gender: '',
-    dateOfBirth: '',
-    qualification: '',
-    experience: '',
-    joiningDate: '',
-    address: '',
-  });
-
-  useEffect(() => {
-    if (teacher && mode === 'edit') {
-      setFormData(teacher);
-    } else {
-      resetForm();
-    }
-  }, [teacher, mode, isOpen]);
-
-  const resetForm = () => {
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      gender: '',
-      dateOfBirth: '',
-      qualification: '',
-      experience: '',
-      joiningDate: '',
-      address: '',
-    });
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-slate-800 p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-            {mode === 'add' ? 'Add New Teacher' : 'Edit Teacher'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            <FiX className="w-6 h-6 text-slate-500 dark:text-slate-400" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Personal Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Personal Information</h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">First Name *</label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                    placeholder="John"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Last Name *</label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="john@school.edu"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Phone *</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="+1 234 567 890"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Gender</label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Date of Birth</label>
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Address</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows="3"
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="Full address"
-                />
-              </div>
-            </div>
-
-            {/* Professional Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Professional Information</h3>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Qualification</label>
-                <input
-                  type="text"
-                  name="qualification"
-                  value={formData.qualification}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  placeholder="Ph.D. in Mathematics"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Experience (years)</label>
-                  <input
-                    type="text"
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleChange}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                    placeholder="5 Years"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Joining Date</label>
-                  <input
-                    type="date"
-                    name="joiningDate"
-                    value={formData.joiningDate}
-                    onChange={handleChange}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-slate-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-colors"
-            >
-              {mode === 'add' ? 'Add Teacher' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+import Form from '../../../common/components/ui/Form';
+import Table from '../../../common/components/ui/Table';
+import StatsCard from '../../../common/components/ui/StatsCard';
+import SearchBar from '../../../common/components/ui/SearchBar';
 
 // Teacher Details Modal
 const TeacherDetailsModal = ({ isOpen, onClose, teacher }) => {
@@ -378,6 +146,19 @@ const TeacherManagement = () => {
   const [formMode, setFormMode] = useState('add');
   const [showFilters, setShowFilters] = useState(false);
 
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    gender: '',
+    dateOfBirth: '',
+    qualification: '',
+    experience: '',
+    joiningDate: '',
+    address: '',
+  });
+
   // Debugging: Log data to console to verify API response and Tenant
   useEffect(() => {
     console.log("Teacher Page - Tenant:", tenantName);
@@ -408,13 +189,31 @@ const TeacherManagement = () => {
     return filtered;
   }, [teachers, searchTerm]);
 
-  const handleAddTeacher = async (newTeacher) => {
+  const stats = [
+    { label: 'Total Teachers', value: teachers.length.toString(), icon: FiUsers, color: 'blue', change: '+2 this month' },
+  ];
+
+  const teacherFields = {
+    firstName: { label: 'First Name', type: 'text', icon: FiUsers, tab: 'basic' },
+    lastName: { label: 'Last Name', type: 'text', icon: FiUsers, tab: 'basic' },
+    email: { label: 'Email', type: 'email', icon: FiMail, tab: 'contact' },
+    phone: { label: 'Phone', type: 'tel', icon: FiPhone, tab: 'contact' },
+    gender: { label: 'Gender', type: 'select', icon: FiUsers, tab: 'personal' },
+    dateOfBirth: { label: 'Date of Birth', type: 'date', icon: FiCalendar, tab: 'personal' },
+    address: { label: 'Address', type: 'textarea', icon: FiMapPin, tab: 'location' },
+    qualification: { label: 'Qualification', type: 'text', icon: FiAward, tab: 'professional' },
+    experience: { label: 'Experience', type: 'text', icon: FiClock, tab: 'professional' },
+    joiningDate: { label: 'Joining Date', type: 'date', icon: FiCalendar, tab: 'professional' },
+  };
+
+  const handleAddTeacher = async (data) => {
     try {
       const teacherData = {
-        ...newTeacher,
-        joiningDate: newTeacher.joiningDate || null,
+        ...data,
+        joiningDate: data.joiningDate || null,
       };
       await createTeacher({ tenantName, data: teacherData }).unwrap();
+      setIsFormModalOpen(false);
     } catch (error) {
       console.error("Failed to create teacher", error);
       alert(error?.data?.message || "Failed to create teacher");
@@ -428,6 +227,7 @@ const TeacherManagement = () => {
         joiningDate: updatedTeacher.joiningDate || null,
       };
       await updateTeacher({ tenantName, id: updatedTeacher._id || updatedTeacher.id || updatedTeacher.teacherId, data: teacherData }).unwrap();
+      setIsFormModalOpen(false);
     } catch (error) {
       console.error("Failed to update teacher", error);
       alert(error?.data?.message || "Failed to update teacher");
@@ -443,9 +243,30 @@ const TeacherManagement = () => {
     }
   };
 
-  const stats = [
-    { label: 'Total Teachers', value: teachers.length.toString(), icon: FiUsers, color: 'blue', change: '+2 this month' },
-  ];
+  const columns = useMemo(() => [
+    { key: 'name', header: 'Name', isPrimary: true, render: (item) => (
+        <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                {item.firstName?.[0]}{item.lastName?.[0]}
+            </div>
+            <div>
+                <p className="font-medium text-slate-900 dark:text-white">{item.firstName} {item.lastName}</p>
+                <p className="text-xs text-slate-500">{item.email}</p>
+            </div>
+        </div>
+    )},
+    { key: 'phone', header: 'Phone' },
+    { key: 'qualification', header: 'Qualification' },
+    { key: 'experience', header: 'Experience' },
+    { key: 'joiningDate', header: 'Joining Date', render: (item) => item.joiningDate ? new Date(item.joiningDate).toLocaleDateString() : 'N/A' },
+  ], []);
+
+  const handleEdit = (teacher) => {
+    setSelectedTeacher(teacher);
+    setFormMode('edit');
+    setFormData(teacher);
+    setIsFormModalOpen(true);
+  };
 
   return (
     <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
@@ -460,43 +281,39 @@ const TeacherManagement = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         {stats.map((stat, index) => (
-          <div
+          <StatsCard
             key={index}
-            className="bg-white dark:bg-slate-800/50 backdrop-blur-sm p-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`p-3 rounded-lg bg-${stat.color}-500/10 text-${stat.color}-400`}>
-                <stat.icon className="w-6 h-6" />
-              </div>
-              <span className="text-xs font-medium text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-400 transition-colors">
-                {stat.change}
-              </span>
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
-          </div>
+            title={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+            color={stat.color}
+            subtitle={stat.change}
+          />
         ))}
       </div>
 
       {/* Action Bar */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex-1 min-w-[300px]">
-          <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search teachers by name, email, or ID..."
-              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-3 text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
-            />
-          </div>
+          <SearchBar onSearch={(term) => setSearchTerm(term)} placeholder="Search teachers..." />
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => {
               setFormMode('add');
               setSelectedTeacher(null);
+              setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                gender: '',
+                dateOfBirth: '',
+                qualification: '',
+                experience: '',
+                joiningDate: '',
+                address: '',
+              });
               setIsFormModalOpen(true);
             }}
             className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white font-medium hover:from-blue-600 hover:to-purple-600 transition-all flex items-center gap-2 shadow-lg shadow-blue-500/25"
@@ -523,74 +340,18 @@ const TeacherManagement = () => {
       )}
 
       {/* Teachers Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filteredTeachers.map((teacher) => (
-          <div
-            key={teacher._id || teacher.id || teacher.teacherId}
-            className="bg-white dark:bg-slate-800/70 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-slate-300 dark:hover:border-slate-600 transition-all group"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                  {teacher.firstName?.[0]}{teacher.lastName?.[0]}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white text-lg">{teacher.firstName} {teacher.lastName}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    {teacher.qualification}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 mb-3">
-              <div className="text-sm">
-                <span className="text-slate-500">Experience</span>
-                <p className="text-slate-900 dark:text-white font-medium">{teacher.experience || '0 Years'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <FiMail className="w-4 h-4" />
-                <span className="truncate max-w-[150px]">{teacher.email}</span>
-              </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    setIsDetailsModalOpen(true);
-                  }}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-blue-400"
-                  title="View Details"
-                >
-                  <FiEye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    setFormMode('edit');
-                    setIsFormModalOpen(true);
-                  }}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-purple-400"
-                  title="Edit"
-                >
-                  <FiEdit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    setIsDeleteModalOpen(true);
-                  }}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-red-400"
-                  title="Delete"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="bg-white dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
+        <Table
+          data={filteredTeachers}
+          columns={columns}
+          onEdit={handleEdit}
+          onDelete={(id) => {
+            const teacher = teachers.find(t => (t._id || t.id || t.teacherId) === id);
+            setSelectedTeacher(teacher);
+            setIsDeleteModalOpen(true);
+          }}
+          primaryKey="_id"
+        />
       </div>
 
       {/* Empty State */}
@@ -616,12 +377,15 @@ const TeacherManagement = () => {
       )}
 
       {/* Modals */}
-      <TeacherFormModal
+      <Form
         isOpen={isFormModalOpen}
+        formData={formData}
+        setFormData={setFormData}
         onClose={() => setIsFormModalOpen(false)}
-        teacher={selectedTeacher}
+        initialData={selectedTeacher}
         onSubmit={formMode === 'add' ? handleAddTeacher : handleEditTeacher}
-        mode={formMode}
+        title="Teacher"
+        fields={teacherFields}
       />
 
       <TeacherDetailsModal

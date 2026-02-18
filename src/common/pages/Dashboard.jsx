@@ -21,7 +21,7 @@ const DashboardCard = ({ title, value, icon: Icon, color }) => (
 );
 
 const Dashboard = () => {
-    const { tenantName } = useParams();
+    const { tenantName } = useParams();  
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
