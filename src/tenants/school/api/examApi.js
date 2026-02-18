@@ -10,8 +10,8 @@ export const examApi = apiSlice.injectEndpoints({
         //     transformResponse: (response) =>  response?.data || [],
         // }),
         getExaminations: builder.query({
-            query: (tenantName) => ({
-                url: `tenant/${tenantName}/examination-portal`,
+            query: ({ tenantName, classId }) => ({
+                url: `tenant/${tenantName}/examination-portal/class/${classId}`,
                 providesTags: ['Examination'],
             })
         }),
@@ -45,6 +45,46 @@ export const examApi = apiSlice.injectEndpoints({
             invalidatesTags: ['Examination'],
         }),
 
+
+
+
+
+
+
+        createExamSchedule: builder.mutation({
+            query: ({ tenantName, data }) => ({
+                url: `tenant/${tenantName}/examination-portal/schedule`,
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['Examination'],
+        }),
+
+
+        getDatesheet: builder.query({
+            query: ({ tenantName, examinationId }) => ({
+                url: `tenant/${tenantName}/examination-portal/${examinationId}/datesheet`,
+            }),
+            providesTags: ['Examination'],
+        }),
+
+        updateExamSchedule: builder.mutation({
+            query: ({ tenantName, id, data }) => ({
+                url: `tenant/${tenantName}/examination-portal/schedule/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Examination'],
+        }),
+
+        deleteExamSchedule: builder.mutation({
+            query: ({ tenantName, id }) => ({
+                url: `tenant/${tenantName}/examination-portal/schedule/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Examination'],
+        }),
+
     }),
 });
 
@@ -53,4 +93,8 @@ export const {
     useCreateExaminationMutation,
     useUpdateExaminationMutation,
     useDeleteExaminationMutation,
+    useGetDatesheetQuery,
+    useCreateExamScheduleMutation,
+    useUpdateExamScheduleMutation,
+    useDeleteExamScheduleMutation,
 } = examApi;
