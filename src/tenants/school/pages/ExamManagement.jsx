@@ -1,174 +1,223 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import {
     useGetExaminationsQuery,
     useCreateExaminationMutation,
     useUpdateExaminationMutation,
-    useDeleteExaminationMutation,
+    useDeleteExaminationMutation
 } from '../api/examApi';
 
+import { useGetAllClassesQuery } from '../api/classApi';
+
+import DataCards from '../../../common/components/ui/DataCards';
 import Form from '../../../common/components/ui/Form';
-import ExamTable from '../components/ExamTable';
 
-import { PlusIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
-
-const initialFormState = {
-    name: '',
-    examType: '',
-    academicYear: '',
-    term: '',
-    startDate: '',
-    endDate: '',
-    description: '',
-};
+import {
+    ClipboardDocumentListIcon,
+    PlusIcon,
+    AcademicCapIcon
+} from '@heroicons/react/24/outline';
 
 const ExamManagement = () => {
-
     const { tenantName } = useParams();
+    const navigate = useNavigate();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedExam, setSelectedExam] = useState(null);
-    const [formData, setFormData] = useState(initialFormState);
-
-    const { data: examsData, isLoading, error, refetch } =
-        useGetExaminationsQuery(tenantName);
-
-    const [createExamination, { isLoading: isCreating }] =
-        useCreateExaminationMutation();
-
-    const [updateExamination, { isLoading: isUpdating }] =
-        useUpdateExaminationMutation();
-
-    const [deleteExamination] =
-        useDeleteExaminationMutation();
-
-    const exams = examsData?.examinations || [];
-    const totalExams = exams.length;
-
-    // -------------------- CREATE --------------------
-    const handleCreate = () => {
-        setSelectedExam(null);
-        setFormData(initialFormState);
-        setIsModalOpen(true);
-
+    const initialFormState = {
+        name: '',
+        examType: '',
+        academicYear: '',
+        term: '',
+        startDate: '',
+        endDate: '',
+        description: '',
+        classId: '',
     };
 
-    // -------------------- EDIT --------------------
+    const [selectedClassId, setSelectedClassId] = useState('');
+    const [selectedExam, setSelectedExam] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState(initialFormState);
+
+    // -------------------- GET CLASSES --------------------
+    const { data: classesData } = useGetAllClassesQuery({ tenantId: tenantName });
+    const classes = classesData?.classes || [];
+
+    useEffect(() => {
+        if (classes.length > 0 && !selectedClassId) {
+            setSelectedClassId(classes[0].id);
+        }
+    }, [classes, selectedClassId]);
+
+    // -------------------- GET EXAMS --------------------
+    const {
+        data: examsData,
+        isLoading,
+        error,
+        refetch
+    } = useGetExaminationsQuery(
+        { tenantName, classId: selectedClassId },
+        { skip: !selectedClassId }
+    );
+
+    const examCardsData = examsData?.class?.examinations || [];
+    const totalExams = examCardsData.length;
+
+    // -------------------- MUTATIONS --------------------
+    const [createExam, { isLoading: isCreating }] = useCreateExaminationMutation();
+    const [updateExam, { isLoading: isUpdating }] = useUpdateExaminationMutation();
+    const [deleteExam] = useDeleteExaminationMutation();
+
+    // -------------------- HANDLERS (LOGIC UNCHANGED) --------------------
+    const handleCreate = () => {
+        setSelectedExam(null);
+        setFormData({ ...initialFormState, classId: selectedClassId });
+        setIsModalOpen(true);
+    };
 
     const handleEdit = (exam) => {
         setSelectedExam(exam);
-        setFormData({
-            name: exam.name || '',
-            examType: exam.examType || '',
-            academicYear: exam.academicYear || '',
-            term: exam.term || '',
-            startDate: exam.startDate?.split('T')[0] || '',
-            endDate: exam.endDate?.split('T')[0] || '',
-            description: exam.description || '',
-        });
         setIsModalOpen(true);
     };
 
-
-    // -------------------- DELETE --------------------
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this exam?')) return;
-
-        try {
-            await deleteExamination({ tenantName, id }).unwrap();
-            refetch()
-        } catch (err) {
-            alert('Failed to delete exam');
-        }
+    const handleDelete = async (exam) => {
+        if (!window.confirm("Delete this exam?")) return;
+        await deleteExam({ tenantName, id: exam.id });
+        refetch();
     };
 
-    // -------------------- SUBMIT --------------------
     const handleSubmit = async (data) => {
         try {
-
-            if (!data.name || !data.examType) {
-                alert("Name and Exam Type are required");
+            if (!data.name) {
+                alert("Exam name is required");
                 return;
             }
-
-            if (data.endDate < data.startDate) {
-                alert("End date must be after start date");
-                return;
-            }
-
             if (selectedExam) {
-                await updateExamination({
-                    tenantName,
-                    id: selectedExam.id,
-                    data
-                }).unwrap();
+                await updateExam({ tenantName, id: selectedExam.id, data }).unwrap();
             } else {
-                await createExamination({
-                    tenantName,
-                    data
-                }).unwrap();
+                await createExam({ tenantName, classId: selectedClassId, data }).unwrap();
             }
-
             setIsModalOpen(false);
-            setFormData(initialFormState);
             setSelectedExam(null);
-
+            setFormData(initialFormState);
+            refetch();
         } catch (err) {
             alert(err?.data?.message || 'Something went wrong');
         }
     };
 
-    return (
-        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+    const examFields = [
+        { key: 'examType', label: 'Type' },
+        { key: 'academicYear', label: 'Year' },
+        { key: 'term', label: 'Term' },
+        {
+            key: 'startDate',
+            label: 'Start',
+            render: (value) => new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+        },
+        {
+            key: 'endDate',
+            label: 'End',
+            render: (value) => new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+        },
+        {
+            key: 'schedules',
+            label: 'Schedules',
+            render: (value, row) => (
+                <span
+                    onClick={() =>
+                        navigate(`/${tenantName}/exam-schedule/${selectedClassId}/${row.id}`)
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    }
+                    className="px-2 py-1 bg-indigo-500/20 text-indigo-600 rounded-md text-xs font-bold cursor-pointer hover:bg-indigo-500/30 transition"
+                >
+                    {value?.length || 0}
+                </span>
+            ),
+        }
+
+    ];
+
+    return (
+        <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 min-h-screen">
+
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white">
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
                         Exam Management
                     </h1>
-                    <p className="text-slate-400 mt-1 text-sm">
-                        Manage examinations and schedules.
+                    <p className="text-slate-500 mt-1 flex items-center gap-2">
+                        <AcademicCapIcon className="h-4 w-4" />
+                        Organize and monitor class-wise examinations
                     </p>
                 </div>
 
                 <button
                     onClick={handleCreate}
-                    className="flex items-center px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-xl shadow-lg hover:opacity-90 transition"
+                    className="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95"
                 >
-                    <PlusIcon className="h-5 w-5 mr-2" />
-                    Add Exam
+                    <PlusIcon className="h-5 w-5 mr-2 stroke-2" />
+                    New Examination
                 </button>
             </div>
 
-            {/* Stats */}
-            <div className="bg-slate-800/70 border border-slate-700 rounded-2xl p-5 shadow-xl">
-                <div className="flex items-center gap-4">
-                    <ClipboardDocumentListIcon className="h-6 w-6 text-indigo-400" />
+            {/* Filter & Stats Card */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+
+                {/* Stats Widget */}
+                <div className="flex items-center gap-4 border-r border-slate-100">
+                    <div className="p-3 bg-indigo-50 rounded-xl">
+                        <ClipboardDocumentListIcon className="h-8 w-8 text-indigo-600" />
+                    </div>
                     <div>
-                        <p className="text-slate-400 text-sm uppercase">
-                            Total Exams
+                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">
+                            Total Scheduled
                         </p>
-                        <p className="text-xl font-bold text-white">
+                        <p className="text-3xl font-black text-slate-900">
                             {totalExams}
                         </p>
                     </div>
                 </div>
+
+                {/* Class Selector */}
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2 ml-1">
+                        Viewing Exams For:
+                    </label>
+                    <select
+                        value={selectedClassId}
+                        onChange={(e) => setSelectedClassId(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 transition-colors outline-none appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
+                    >
+                        {classes.map((cls) => (
+                            <option key={cls.id} value={cls.id}>
+                                {cls.name} • Section {cls.section}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
-            {/* Error */}
+            {/* Error Message */}
             {error && (
-                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400">
-                    {error?.data?.message || 'Failed to load exams'}
+                <div className="flex items-center p-4 text-sm text-red-800 border border-red-200 rounded-xl bg-red-50" role="alert">
+                    <span className="font-medium mr-2">Error:</span> {error?.data?.message || 'Failed to load exams'}
                 </div>
             )}
 
-            {/* Table */}
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-xl overflow-hidden">
-                <ExamTable
-                    data={exams}
+            {/* Content Area */}
+            <div className="relative min-h-[400px]">
+                <DataCards
+                    data={examCardsData}
+                    fields={examFields}
+                    titleKey="name"
+                    loading={isLoading}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    primaryKey="id"
+                    emptyMessage="No examinations found for this class."
                 />
             </div>
 
@@ -182,6 +231,7 @@ const ExamManagement = () => {
                 initialData={selectedExam}
                 isLoading={isCreating || isUpdating}
                 type="exam"
+                classes={classes}
             />
         </div>
     );

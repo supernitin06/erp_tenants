@@ -202,26 +202,75 @@ const Form = ({
     onSubmit,
     initialData,
     isLoading,
-    type = "student"
+    type = "student",
+    classes = []
 }) => {
 
     const formatType = (value) =>
         value.charAt(0).toUpperCase() + value.slice(1);
 
+    // useEffect(() => {
+    //     if (initialData) {
+    //         setFormData({
+    //             ...initialData,
+    //             dateOfBirth: initialData.dateOfBirth
+    //                 ? initialData.dateOfBirth.split('T')[0]
+    //                 : '',
+    //         });
+    //     } else {
+    //         const emptyData = Object.keys(formData).reduce((acc, key) => {
+    //             acc[key] = '';
+    //             return acc;
+    //         }, {});
+    //         setFormData(emptyData);
+    //     }
+    // }, [initialData, isOpen]);
+
+
     useEffect(() => {
         if (initialData) {
-            setFormData({
-                ...initialData,
-                dateOfBirth: initialData.dateOfBirth
-                    ? initialData.dateOfBirth.split('T')[0]
-                    : '',
-            });
+            if (type === "student") {
+                setFormData({
+                    ...initialData,
+                    dateOfBirth: initialData.dateOfBirth
+                        ? initialData.dateOfBirth.split('T')[0]
+                        : '',
+                });
+            } else if (type === "exam") {
+                setFormData({
+                    name: initialData.name || '',
+                    examType: initialData.examType || '',
+                    academicYear: initialData.academicYear || '',
+                    term: initialData.term || '',
+                    startDate: initialData.startDate?.split('T')[0] || '',
+                    endDate: initialData.endDate?.split('T')[0] || '',
+                    description: initialData.description || '',
+                    classId: initialData.classId || ''
+                });
+            } else if (type === "exam schedule") {
+                setFormData({
+                    subject: initialData.subject || '',
+                    examDate: initialData.examDate?.split('T')[0] || '',
+                    startTime: initialData.startTime || '',
+                    endTime: initialData.endTime || '',
+                    className: initialData.className || '',
+                    roomNumber: initialData.roomNumber || '',
+                });
+            } else if (type === "class") {
+                setFormData({
+                    name: initialData.name || '',
+                    section: initialData.section || '',
+                    academicYear: initialData.academicYear || '',
+                    description: initialData.description || '',
+                });
+            } else {
+                setFormData(initialData); // default fallback
+            }
         } else {
-            const emptyData = Object.keys(formData).reduce((acc, key) => {
+            setFormData(Object.keys(formData).reduce((acc, key) => {
                 acc[key] = '';
                 return acc;
-            }, {});
-            setFormData(emptyData);
+            }, {}));
         }
     }, [initialData, isOpen]);
 
@@ -314,6 +363,29 @@ const Form = ({
                                     </div>
                                 );
                             }
+                            if (key === "classId" && type === "exam") {
+                                return (
+                                    <div key={key}>
+                                        <label className={labelStyle}>Class</label>
+                                        <select
+                                            name="classId"
+                                            value={formData.classId || ''}
+                                            onChange={handleChange}
+                                            className={inputStyle}
+                                        >
+                                            <option value="">Select Class</option>
+
+                                            {classes.map((cls) => (
+                                                <option key={cls.id} value={cls.id}>
+                                                    {cls.name} {cls.section ? `- ${cls.section}` : ''}
+                                                </option>
+                                            ))}
+
+                                        </select>
+                                    </div>
+                                );
+                            }
+
 
                             if (key === "gender") {
                                 return (

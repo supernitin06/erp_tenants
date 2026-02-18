@@ -1,8 +1,14 @@
 import React from "react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useNavigate, useParams } from "react-router-dom";
+
 
 const ExamTable = ({ data, onEdit, onDelete }) => {
+    const params = useParams();
+    console.log(params);
+
     const exams = data || [];
+    const navigate = useNavigate()
     if (!exams?.length) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -135,7 +141,10 @@ const ExamTable = ({ data, onEdit, onDelete }) => {
                                     </td>
 
                                     <td className="table-cell text-center">
-                                        <span className="inline-flex px-3 py-1 text-[11px] rounded-full font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                        <span
+                                            className=" cursor-pointer inline-flex px-3 py-1 text-[11px] rounded-full font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                            onClick={() => navigate(`/${params.tenantName}/${params.domain}/exam-schedule/${exam.id}`)}
+                                        >
                                             {exam.schedules?.length || 0}
                                         </span>
                                     </td>
