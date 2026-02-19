@@ -8,6 +8,8 @@ import {
 } from '../api/studentapi';
 import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
+import StatsCard from '../../../common/components/ui/StatsCard';
+import SearchBar from '../../../common/components/ui/SearchBar';
 
 import { 
     PlusIcon, 
@@ -16,9 +18,11 @@ import {
     UserGroupIcon,
     ChartBarIcon,
     SparklesIcon,
-    MagnifyingGlassIcon,
-    FunnelIcon,
-    ArrowPathIcon
+    IdentificationIcon,
+    EnvelopeIcon,
+    PhoneIcon,
+    CalendarIcon,
+    MapPinIcon
 } from '@heroicons/react/24/outline';
 
 const Student = () => {
@@ -82,6 +86,21 @@ const Student = () => {
         },
     ], []);
 
+    const studentFields = {
+        firstName: { label: 'First Name', type: 'text', icon: UsersIcon, tab: 'basic' },
+        lastName: { label: 'Last Name', type: 'text', icon: UsersIcon, tab: 'basic' },
+        studentId: { label: 'Student ID', type: 'text', icon: IdentificationIcon, tab: 'basic' },
+        email: { label: 'Email', type: 'email', icon: EnvelopeIcon, tab: 'contact' },
+        phone: { label: 'Phone', type: 'tel', icon: PhoneIcon, tab: 'contact' },
+        gender: { label: 'Gender', type: 'select', icon: UsersIcon, tab: 'personal' },
+        dateOfBirth: { label: 'Date of Birth', type: 'date', icon: CalendarIcon, tab: 'personal' },
+        address: { label: 'Address', type: 'textarea', icon: MapPinIcon, tab: 'location' },
+        classId: { label: 'Class', type: 'text', icon: AcademicCapIcon, tab: 'professional' },
+        sectionId: { label: 'Section', type: 'text', icon: UserGroupIcon, tab: 'professional' },
+        parentName: { label: 'Parent Name', type: 'text', icon: UsersIcon, tab: 'contact' },
+        parentPhone: { label: 'Parent Phone', type: 'tel', icon: PhoneIcon, tab: 'contact' },
+    };
+
     // Filter students based on search and gender
     const filteredStudents = useMemo(() => {
         return students.filter(student => {
@@ -91,7 +110,7 @@ const Student = () => {
                 student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
             
-            const matchesGender = filterGender === 'all' || student.gender === filterGender;
+            const matchesGender = filterGender === 'all' || student.gender?.toLowerCase() === filterGender;
             
             return matchesSearch && matchesGender;
         });
@@ -101,9 +120,9 @@ const Student = () => {
     
     // Calculate statistics
     const stats = useMemo(() => {
-        const male = students.filter(s => s.gender === 'male').length;
-        const female = students.filter(s => s.gender === 'female').length;
-        const other = students.filter(s => s.gender && !['male', 'female'].includes(s.gender)).length;
+        const male = students.filter(s => s.gender?.toLowerCase() === 'male').length;
+        const female = students.filter(s => s.gender?.toLowerCase() === 'female').length;
+        const other = students.filter(s => s.gender && !['male', 'female'].includes(s.gender?.toLowerCase())).length;
         
         return { male, female, other };
     }, [students]);
@@ -162,6 +181,16 @@ const Student = () => {
         }
     };
 
+    const handleSearch = (term, filters) => {
+        setSearchTerm(term);
+        if (filters.gender) {
+            setFilterGender(filters.gender);
+        } else {
+            setFilterGender('all');
+        }
+    };
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
             {/* Decorative Background Elements */}
@@ -205,131 +234,55 @@ const Student = () => {
 
                 {/* Stats Cards with Enhanced Design */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Total Students Card */}
-                    <div className="group bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/50 dark:border-slate-700 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 group-hover:scale-110 transition-transform">
-                                <UsersIcon className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Total Students</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {totalStudents}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-500 dark:text-slate-400">Active</span>
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{totalStudents}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Male Students Card */}
-                    <div className="group bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/50 dark:border-slate-700 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
-                                <UserGroupIcon className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Male Students</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {stats.male}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-500 dark:text-slate-400">Percentage</span>
-                                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                    {totalStudents ? Math.round((stats.male / totalStudents) * 100) : 0}%
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Female Students Card */}
-                    <div className="group bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/50 dark:border-slate-700 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30 group-hover:scale-110 transition-transform">
-                                <UserGroupIcon className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Female Students</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {stats.female}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-500 dark:text-slate-400">Percentage</span>
-                                <span className="font-semibold text-pink-600 dark:text-pink-400">
-                                    {totalStudents ? Math.round((stats.female / totalStudents) * 100) : 0}%
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Class Distribution Card */}
-                    <div className="group bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/50 dark:border-slate-700 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
-                                <ChartBarIcon className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Classes</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {new Set(students.map(s => s.classId)).size}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-500 dark:text-slate-400">Sections</span>
-                                <span className="font-semibold text-purple-600 dark:text-purple-400">
-                                    {new Set(students.map(s => s.sectionId)).size}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                    <StatsCard
+                        title="Total Students"
+                        value={totalStudents}
+                        icon={UsersIcon}
+                        color="blue"
+                        subtitle="Active Students"
+                    />
+                    <StatsCard
+                        title="Male Students"
+                        value={stats.male}
+                        icon={UserGroupIcon}
+                        color="blue"
+                        subtitle={`${totalStudents ? Math.round((stats.male / totalStudents) * 100) : 0}% of total`}
+                    />
+                    <StatsCard
+                        title="Female Students"
+                        value={stats.female}
+                        icon={UserGroupIcon}
+                        color="pink"
+                        subtitle={`${totalStudents ? Math.round((stats.female / totalStudents) * 100) : 0}% of total`}
+                    />
+                    <StatsCard
+                        title="Classes"
+                        value={new Set(students.map(s => s.classId)).size}
+                        icon={ChartBarIcon}
+                        color="purple"
+                        subtitle={`${new Set(students.map(s => s.sectionId)).size} Sections`}
+                    />
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700 p-4 shadow-lg">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Search students by name, email, or ID..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <select
-                                value={filterGender}
-                                onChange={(e) => setFilterGender(e.target.value)}
-                                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
-                            >
-                                <option value="all">All Genders</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                            </select>
-                            <button
-                                onClick={() => refetch()}
-                                className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                                title="Refresh"
-                            >
-                                <ArrowPathIcon className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <SearchBar
+                    onSearch={handleSearch}
+                    placeholder="Search students by name, email, or ID..."
+                    filters={[
+                        {
+                            key: 'gender',
+                            label: 'Gender',
+                            type: 'select',
+                            options: [
+                                { value: 'all', label: 'All Genders' },
+                                { value: 'male', label: 'Male' },
+                                { value: 'female', label: 'Female' },
+                                { value: 'other', label: 'Other' }
+                            ]
+                        }
+                    ]}
+                    initialFilters={{ gender: 'all' }}
+                />
 
                 {/* Error Message with Enhanced Design */}
                 {error && (
@@ -408,6 +361,7 @@ const Student = () => {
                     initialData={selectedStudent}
                     isLoading={isCreating || isUpdating}
                     title="Student"
+                    fields={studentFields}
                 />
             </div>
         </div>

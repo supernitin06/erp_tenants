@@ -84,7 +84,8 @@ const Sidebar = ({ closeSidebar }) => {
         if (name.includes('STUDENT') && (name.includes('ATTENDANCE') || name.includes('ATTANDANCE'))) return 'student-attendance';
         if (name.includes('EXAM') && name.includes('DATESHEET')) return 'exam-datesheet';
         if (name.includes('EXAM') && name.includes('RESULT')) return 'exam-result';
-        if (name.includes('LIBRARY') && name.includes('BOOKS')) return 'library-books-mangement';
+        if (name.includes('LIBRARY') && name.includes('BOOKS')) return 'library-books-management';
+        if (name.includes('BOOK') && name.includes('MANAGEMENT')) return 'library-books-management';
         if (name.includes('LIBRARY')) return 'library';
         if (name.includes('CLASS')) return 'class-management';
         if (name.includes('SALARY')) return 'salary-manageement';

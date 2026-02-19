@@ -37,11 +37,8 @@ const schoolRoutes = [
         element: <ExamResult />,
     },
     {
-        path: 'exam-management',
-        element: <ExamManagement />,
-    },
-    {
-        path: 'library-books-mangement',
+       
+        path: 'library-books-management',
         element: <LibraryBooks />,
     },
     {

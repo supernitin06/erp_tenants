@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/authcontext';
@@ -14,7 +14,8 @@ import {
     HiOutlineSparkles,
     HiOutlineHeart,
     HiOutlineFire,
-    HiOutlineLogout
+    HiOutlineLogout,
+    HiX
 } from 'react-icons/hi';
 import { FiPackage, FiZap } from 'react-icons/fi';
 
@@ -24,6 +25,7 @@ const Pricing = () => {
     const { logout } = useAuth();
     const { data, isLoading, isError } = useGetSubscriptionPlansQuery();
     const plans = data?.plans || [];
+    const [selectedPlanFeatures, setSelectedPlanFeatures] = useState(null);
 
     const cardStyles = [
         {
@@ -91,6 +93,24 @@ const Pricing = () => {
 
     const handleSelectPlan = (plan) => {
         navigate(`/${tenantName}/checkout`, { state: { plan } });
+    };
+
+    const getPlanFeatures = (plan) => {
+        if (plan.features && Array.isArray(plan.features) && plan.features.length > 0 && typeof plan.features[0] === 'string') {
+            return plan.features;
+        }
+        
+        const features = [];
+        if (plan.domains && Array.isArray(plan.domains)) {
+            plan.domains.forEach(d => {
+                if (d.domain && d.domain.features && Array.isArray(d.domain.features)) {
+                    d.domain.features.forEach(f => {
+                        if (f.feature_name) features.push(f.feature_name);
+                    });
+                }
+            });
+        }
+        return [...new Set(features)];
     };
 
     if (isLoading) {
@@ -206,6 +226,7 @@ const Pricing = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 justify-center">
                     {plans.map((plan, index) => {
                         const style = cardStyles[index % cardStyles.length];
+                        const planFeatures = getPlanFeatures(plan);
 
                         return (
                             <motion.div
@@ -246,7 +267,7 @@ const Pricing = () => {
                                     <div className="mb-8">
                                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">What's included:</p>
                                         <ul className="space-y-3">
-                                            {(plan.features || []).slice(0, 5).map((feature, idx) => (
+                                            {planFeatures.slice(0, 5).map((feature, idx) => (
                                                 <motion.li
                                                     key={idx}
                                                     initial={{ opacity: 0, x: -10 }}
@@ -257,15 +278,18 @@ const Pricing = () => {
                                                     <div className={`flex-shrink-0 w-5 h-5 rounded-full ${style.light} flex items-center justify-center mr-3`}>
                                                         <HiOutlineCheckCircle className={`w-4 h-4 ${style.icon}`} />
                                                     </div>
-                                                    <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
+                                                    <span className="capitalize">{feature.toLowerCase().replace(/_/g, ' ')}</span>
                                                 </motion.li>
                                             ))}
                                         </ul>
 
-                                        {(plan.features?.length > 5) && (
-                                            <p className="text-xs text-slate-400 mt-3 text-center">
-                                                +{plan.features.length - 5} more features
-                                            </p>
+                                        {(planFeatures.length > 5) && (
+                                            <button 
+                                                onClick={() => setSelectedPlanFeatures({ name: plan.name, features: planFeatures })}
+                                                className="text-xs text-blue-500 hover:text-blue-700 mt-3 text-center w-full font-medium transition-colors"
+                                            >
+                                                +{planFeatures.length - 5} more features
+                                            </button>
                                         )}
                                     </div>
 
@@ -301,6 +325,38 @@ const Pricing = () => {
                     </p>
                 </motion.div>
             </motion.div>
+
+            {/* Features Modal */}
+            {selectedPlanFeatures && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedPlanFeatures(null)}>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 className="text-xl font-bold text-slate-800">{selectedPlanFeatures.name} Features</h3>
+                            <button onClick={() => setSelectedPlanFeatures(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                                <HiX className="w-5 h-5 text-slate-500" />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            <ul className="space-y-3">
+                                {selectedPlanFeatures.features.map((feature, idx) => (
+                                    <li key={idx} className="flex items-start text-slate-600 text-sm">
+                                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
+                                            <HiOutlineCheckCircle className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <span className="capitalize">{feature.toLowerCase().replace(/_/g, ' ')}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };

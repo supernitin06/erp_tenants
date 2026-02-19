@@ -14,12 +14,25 @@ import {
     EyeIcon,
     XMarkIcon,
     CheckCircleIcon,
+    ExclamationCircleIcon,
     ExclamationTriangleIcon,
-    ExclamationCircleIcon
+    UserIcon,
+    PhoneIcon,
+    EnvelopeIcon,
+    CalendarIcon,
+    UserGroupIcon,
+    ClockIcon,
+    MapPinIcon,
+    IdentificationIcon,
+    TagIcon,
+    BuildingOfficeIcon,
+    BookmarkIcon,
+    GlobeAltIcon,
+    HashtagIcon,
+    CurrencyDollarIcon,
+    ViewColumnsIcon
 } from '@heroicons/react/24/outline';
 import { useParams } from 'react-router-dom';
-
-// API service imports (you'll need to create these)
 import {
     useGetAllLibrariesQuery,
     useGetLibraryByIdQuery,
@@ -32,6 +45,10 @@ import {
     useUpdateBookMutation,
     useDeleteBookMutation
 } from '../api/libraryApi';
+import Form from '../../../common/components/ui/Form';
+import Table from '../../../common/components/ui/Table';
+import StatsCard from '../../../common/components/ui/StatsCard';
+import SearchBar from '../../../common/components/ui/SearchBar';
 
 const Library = () => {
     const { tenantName, libraryId } = useParams();
@@ -45,34 +62,7 @@ const Library = () => {
     const itemsPerPage = 10;
 
     // Form states
-    const [libraryForm, setLibraryForm] = useState({
-        name: '',
-        location: '',
-        librarian: '',
-        contact: '',
-        email: '',
-        establishedYear: '',
-        totalCapacity: '',
-        workingHours: '',
-        description: ''
-    });
-
-    const [bookForm, setBookForm] = useState({
-        title: '',
-        author: '',
-        isbn: '',
-        category: '',
-        publisher: '',
-        publishYear: '',
-        edition: '',
-        pages: '',
-        language: '',
-        quantity: '',
-        shelf: '',
-        rack: '',
-        description: '',
-        price: ''
-    });
+    const [formData, setFormData] = useState({});
 
     // API Hooks
     const { data: librariesData, isLoading: librariesLoading, error: librariesError, refetch: refetchLibraries } = useGetAllLibrariesQuery(tenantName);
@@ -139,11 +129,98 @@ const Library = () => {
         (selectedView === 'libraries' ? filteredLibraries.length : filteredBooks.length) / itemsPerPage
     );
 
+    // Columns Configuration
+    const libraryColumns = useMemo(() => [
+        { key: 'name', header: 'Name', isPrimary: true },
+        { key: 'location', header: 'Location' },
+        { key: 'librarian', header: 'Librarian' },
+        { key: 'contact', header: 'Contact' },
+        { key: 'totalBooks', header: 'Books', render: (item) => item.totalBooks || 0 }
+    ], []);
+
+    const bookColumns = useMemo(() => [
+        { key: 'title', header: 'Title', isPrimary: true },
+        { key: 'author', header: 'Author' },
+        { key: 'isbn', header: 'ISBN' },
+        { key: 'category', header: 'Category' },
+        { key: 'quantity', header: 'Qty' },
+        { key: 'status', header: 'Status', render: (item) => (
+             <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.quantity > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400'}`}>
+                 {item.quantity > 0 ? 'Available' : 'Out of Stock'}
+             </span>
+        )}
+    ], []);
+
+    // Fields Configuration
+    const libraryFields = {
+        name: { label: 'Library Name', type: 'text', icon: BuildingLibraryIcon, tab: 'basic' },
+        location: { label: 'Location', type: 'text', icon: MapPinIcon, tab: 'basic' },
+        librarian: { label: 'Librarian', type: 'text', icon: UserIcon, tab: 'basic' },
+        contact: { label: 'Contact', type: 'tel', icon: PhoneIcon, tab: 'contact' },
+        email: { label: 'Email', type: 'email', icon: EnvelopeIcon, tab: 'contact' },
+        establishedYear: { label: 'Est. Year', type: 'number', icon: CalendarIcon, tab: 'basic' },
+        totalCapacity: { label: 'Capacity', type: 'number', icon: UserGroupIcon, tab: 'basic' },
+        workingHours: { label: 'Working Hours', type: 'text', icon: ClockIcon, tab: 'basic' },
+        description: { label: 'Description', type: 'textarea', icon: DocumentTextIcon, tab: 'basic' }
+    };
+
+    const bookFields = {
+        title: { label: 'Title', type: 'text', icon: BookOpenIcon, tab: 'basic' },
+        author: { label: 'Author', type: 'text', icon: UserIcon, tab: 'basic' },
+        isbn: { label: 'ISBN', type: 'text', icon: IdentificationIcon, tab: 'basic' },
+        category: { label: 'Category', type: 'text', icon: TagIcon, tab: 'basic' },
+        publisher: { label: 'Publisher', type: 'text', icon: BuildingOfficeIcon, tab: 'basic' },
+        publishYear: { label: 'Publish Year', type: 'number', icon: CalendarIcon, tab: 'basic' },
+        edition: { label: 'Edition', type: 'text', icon: BookmarkIcon, tab: 'basic' },
+        pages: { label: 'Pages', type: 'number', icon: DocumentTextIcon, tab: 'basic' },
+        language: { label: 'Language', type: 'text', icon: GlobeAltIcon, tab: 'basic' },
+        quantity: { label: 'Quantity', type: 'number', icon: HashtagIcon, tab: 'basic' },
+        price: { label: 'Price', type: 'number', icon: CurrencyDollarIcon, tab: 'basic' },
+        shelf: { label: 'Shelf', type: 'text', icon: ViewColumnsIcon, tab: 'location' },
+        rack: { label: 'Rack', type: 'text', icon: ViewColumnsIcon, tab: 'location' },
+        description: { label: 'Description', type: 'textarea', icon: DocumentTextIcon, tab: 'basic' }
+    };
+
+    // Derived state for Form initialData
+    const formInitialData = useMemo(() => {
+        if (!selectedItem) return null;
+        if (modalType === 'library') {
+            return {
+                name: selectedItem.name || '',
+                location: selectedItem.location || '',
+                librarian: selectedItem.librarian || '',
+                contact: selectedItem.contact || '',
+                email: selectedItem.email || '',
+                establishedYear: selectedItem.establishedYear || '',
+                totalCapacity: selectedItem.totalCapacity || '',
+                workingHours: selectedItem.workingHours || '',
+                description: selectedItem.description || ''
+            };
+        } else {
+            return {
+                title: selectedItem.title || '',
+                author: selectedItem.author || '',
+                isbn: selectedItem.isbn || '',
+                category: selectedItem.category || '',
+                publisher: selectedItem.publisher || '',
+                publishYear: selectedItem.publishYear || '',
+                edition: selectedItem.edition || '',
+                pages: selectedItem.pages || '',
+                language: selectedItem.language || '',
+                quantity: selectedItem.quantity || '',
+                price: selectedItem.price || '',
+                shelf: selectedItem.shelf || '',
+                rack: selectedItem.rack || '',
+                description: selectedItem.description || ''
+            };
+        }
+    }, [selectedItem, modalType]);
+
     // Handlers
     const handleAddLibrary = () => {
         setModalType('library');
         setSelectedItem(null);
-        setLibraryForm({
+        setFormData({
             name: '',
             location: '',
             librarian: '',
@@ -164,7 +241,7 @@ const Library = () => {
         }
         setModalType('book');
         setSelectedItem(null);
-        setBookForm({
+        setFormData({
             title: '',
             author: '',
             isbn: '',
@@ -186,39 +263,12 @@ const Library = () => {
     const handleEditLibrary = (library) => {
         setModalType('library');
         setSelectedItem(library);
-        setLibraryForm({
-            name: library.name || '',
-            location: library.location || '',
-            librarian: library.librarian || '',
-            contact: library.contact || '',
-            email: library.email || '',
-            establishedYear: library.establishedYear || '',
-            totalCapacity: library.totalCapacity || '',
-            workingHours: library.workingHours || '',
-            description: library.description || ''
-        });
         setIsModalOpen(true);
     };
 
     const handleEditBook = (book) => {
         setModalType('book');
         setSelectedItem(book);
-        setBookForm({
-            title: book.title || '',
-            author: book.author || '',
-            isbn: book.isbn || '',
-            category: book.category || '',
-            publisher: book.publisher || '',
-            publishYear: book.publishYear || '',
-            edition: book.edition || '',
-            pages: book.pages || '',
-            language: book.language || '',
-            quantity: book.quantity || '',
-            shelf: book.shelf || '',
-            rack: book.rack || '',
-            description: book.description || '',
-            price: book.price || ''
-        });
         setIsModalOpen(true);
     };
 
@@ -244,46 +294,24 @@ const Library = () => {
         }
     };
 
-    const handleLibrarySubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (data) => {
         try {
-            if (selectedItem) {
-                await updateLibrary({
-                    tenantName,
-                    id: selectedItem.id,
-                    data: libraryForm
-                }).unwrap();
+            if (modalType === 'library') {
+                if (selectedItem) {
+                    await updateLibrary({ tenantName, id: selectedItem.id, data }).unwrap();
+                } else {
+                    await createLibrary({ tenantName, data }).unwrap();
+                }
+                refetchLibraries();
             } else {
-                await createLibrary({
-                    tenantName,
-                    data: libraryForm
-                }).unwrap();
+                if (selectedItem) {
+                    await updateBook({ tenantName, id: selectedItem.id, data }).unwrap();
+                } else {
+                    await addBook({ tenantName, libraryId: selectedLibrary.id, data }).unwrap();
+                }
+                refetchBooks();
             }
             setIsModalOpen(false);
-            refetchLibraries();
-        } catch (error) {
-            alert(error?.data?.message || 'Something went wrong');
-        }
-    };
-
-    const handleBookSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (selectedItem) {
-                await updateBook({
-                    tenantName,
-                    id: selectedItem.id,
-                    data: bookForm
-                }).unwrap();
-            } else {
-                await addBook({
-                    tenantName,
-                    libraryId: selectedLibrary.id,
-                    data: bookForm
-                }).unwrap();
-            }
-            setIsModalOpen(false);
-            refetchBooks();
         } catch (error) {
             alert(error?.data?.message || 'Something went wrong');
         }
@@ -378,115 +406,68 @@ const Library = () => {
                 {/* Stats Cards */}
                 {selectedView === 'libraries' ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-lg shadow-lg">
-                                    <BuildingLibraryIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Libraries</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{totalLibraries}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-purple-600 to-purple-400 rounded-lg shadow-lg">
-                                    <BookOpenIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Books</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{totalBooks}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-lg shadow-lg">
-                                    <CheckCircleIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Available Books</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{availableBooks}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-amber-600 to-amber-400 rounded-lg shadow-lg">
-                                    <DocumentTextIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Categories</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{uniqueCategories}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <StatsCard
+                            title="Total Libraries"
+                            value={totalLibraries}
+                            icon={BuildingLibraryIcon}
+                            color="blue"
+                        />
+                        <StatsCard
+                            title="Total Books"
+                            value={totalBooks}
+                            icon={BookOpenIcon}
+                            color="purple"
+                        />
+                        <StatsCard
+                            title="Available Books"
+                            value={availableBooks}
+                            icon={CheckCircleIcon}
+                            color="emerald"
+                        />
+                        <StatsCard
+                            title="Categories"
+                            value={uniqueCategories}
+                            icon={DocumentTextIcon}
+                            color="amber"
+                        />
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-lg shadow-lg">
-                                    <BookOpenIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Total Books</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{totalBooks}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-emerald-600 to-emerald-400 rounded-lg shadow-lg">
-                                    <CheckCircleIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Available</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{availableBooks}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-purple-600 to-purple-400 rounded-lg shadow-lg">
-                                    <DocumentTextIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Categories</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{uniqueCategories}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 rounded-xl p-5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-amber-600 to-amber-400 rounded-lg shadow-lg">
-                                    <ExclamationTriangleIcon className="h-5 w-5 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Issued</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{totalBooks - availableBooks}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <StatsCard
+                            title="Total Books"
+                            value={totalBooks}
+                            icon={BookOpenIcon}
+                            color="blue"
+                        />
+                        <StatsCard
+                            title="Available"
+                            value={availableBooks}
+                            icon={CheckCircleIcon}
+                            color="emerald"
+                        />
+                        <StatsCard
+                            title="Categories"
+                            value={uniqueCategories}
+                            icon={DocumentTextIcon}
+                            color="purple"
+                        />
+                        <StatsCard
+                            title="Issued"
+                            value={totalBooks - availableBooks}
+                            icon={ExclamationTriangleIcon}
+                            color="amber"
+                        />
                     </div>
                 )}
 
                 {/* Search Bar */}
                 <div className="mb-6">
-                    <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors z-10" />
-                        <input
-                            type="text"
-                            placeholder={selectedView === 'libraries' 
-                                ? "Search libraries by name, location, or librarian..." 
-                                : "Search books by title, author, ISBN, or category..."}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="relative w-full pl-12 pr-4 py-3.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-all text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                        />
-                    </div>
+                    <SearchBar
+                        onSearch={(term) => setSearchTerm(term)}
+                        placeholder={selectedView === 'libraries' 
+                            ? "Search libraries by name, location, or librarian..." 
+                            : "Search books by title, author, ISBN, or category..."}
+                    />
                 </div>
 
                 {/* Error Message */}
@@ -516,46 +497,15 @@ const Library = () => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {paginatedLibraries.map((library) => (
-                                    <div key={library.id} className="p-6 hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg">
-                                                        <BuildingLibraryIcon className="h-5 w-5 text-white" />
-                                                    </div>
-                                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                                        {library.name}
-                                                    </h3>
-                                                    <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full text-xs">
-                                                        {library.totalBooks || 0} books
-                                                    </span>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                                        <span className="text-gray-400">📍</span>
-                                                        {library.location || 'Location not specified'}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                                        <span className="text-gray-400">👤</span>
-                                                        {library.librarian || 'No librarian assigned'}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                                        <span className="text-gray-400">📞</span>
-                                                        {library.contact || 'No contact'}
-                                                    </div>
-                                                </div>
-
-                                                {library.description && (
-                                                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                                        {library.description}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            
-                                            <div className="flex items-center gap-2 ml-4">
+                            <Table
+                                data={paginatedLibraries}
+                                columns={[
+                                    ...libraryColumns,
+                                    {
+                                        key: 'actions',
+                                        header: 'Actions',
+                                        render: (library) => (
+                                            <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleViewLibrary(library)}
                                                     className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-colors"
@@ -576,10 +526,10 @@ const Library = () => {
                                                     <TrashIcon className="h-5 w-5" />
                                                 </button>
                                             </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                        )
+                                    }
+                                ]}
+                            />
                         )}
                     </div>
                 )}
@@ -600,76 +550,12 @@ const Library = () => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Book Details</th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Author</th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ISBN</th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Shelf/Rack</th>
-                                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quantity</th>
-                                            <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                        {paginatedBooks.map((book) => (
-                                            <tr key={book.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg mr-3 text-white">
-                                                            📚
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                                {book.title}
-                                                            </div>
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                {book.publisher} • {book.publishYear}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                    {book.author}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
-                                                    {book.isbn}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-2.5 py-1 bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-lg text-xs font-medium">
-                                                        {book.category}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                    {book.shelf || '-'} / {book.rack || '-'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">{book.quantity}</span>
-                                                        <span className="text-xs text-gray-400 dark:text-gray-500">available</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                    <button
-                                                        onClick={() => handleEditBook(book)}
-                                                        className="text-amber-600 hover:text-amber-800 dark:hover:text-amber-400 mr-3"
-                                                    >
-                                                        <PencilIcon className="h-5 w-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteBook(book.id)}
-                                                        className="text-rose-600 hover:text-rose-800 dark:hover:text-rose-400"
-                                                    >
-                                                        <TrashIcon className="h-5 w-5" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <Table
+                                data={paginatedBooks}
+                                columns={bookColumns}
+                                onEdit={handleEditBook}
+                                onDelete={(id) => handleDeleteBook(id)}
+                            />
                         )}
                     </div>
                 )}
@@ -700,297 +586,18 @@ const Library = () => {
                 )}
             </div>
 
-            {/* Modal for Add/Edit Library */}
-            {isModalOpen && modalType === 'library' && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex items-center justify-center min-h-screen px-4">
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                        <div className="relative bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {selectedItem ? 'Edit Library' : 'Add New Library'}
-                                </h2>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                                    <XMarkIcon className="h-5 w-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleLibrarySubmit} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Library Name *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={libraryForm.name}
-                                            onChange={(e) => setLibraryForm({...libraryForm, name: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
-                                        <input
-                                            type="text"
-                                            value={libraryForm.location}
-                                            onChange={(e) => setLibraryForm({...libraryForm, location: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Librarian Name</label>
-                                        <input
-                                            type="text"
-                                            value={libraryForm.librarian}
-                                            onChange={(e) => setLibraryForm({...libraryForm, librarian: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contact Number</label>
-                                        <input
-                                            type="tel"
-                                            value={libraryForm.contact}
-                                            onChange={(e) => setLibraryForm({...libraryForm, contact: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                                        <input
-                                            type="email"
-                                            value={libraryForm.email}
-                                            onChange={(e) => setLibraryForm({...libraryForm, email: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Established Year</label>
-                                        <input
-                                            type="number"
-                                            value={libraryForm.establishedYear}
-                                            onChange={(e) => setLibraryForm({...libraryForm, establishedYear: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Capacity</label>
-                                        <input
-                                            type="number"
-                                            value={libraryForm.totalCapacity}
-                                            onChange={(e) => setLibraryForm({...libraryForm, totalCapacity: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Working Hours</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g., 9 AM - 6 PM"
-                                            value={libraryForm.workingHours}
-                                            onChange={(e) => setLibraryForm({...libraryForm, workingHours: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                                    <textarea
-                                        rows="3"
-                                        value={libraryForm.description}
-                                        onChange={(e) => setLibraryForm({...libraryForm, description: e.target.value})}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                    ></textarea>
-                                </div>
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isCreatingLibrary || isUpdatingLibrary}
-                                        className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-500 hover:to-purple-500 transition-colors disabled:opacity-50"
-                                    >
-                                        {isCreatingLibrary || isUpdatingLibrary ? 'Saving...' : (selectedItem ? 'Update' : 'Create')}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal for Add/Edit Book */}
-            {isModalOpen && modalType === 'book' && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="flex items-center justify-center min-h-screen px-4 py-8">
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                        <div className="relative bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {selectedItem ? 'Edit Book' : 'Add New Book'}
-                                </h2>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                                    <XMarkIcon className="h-5 w-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleBookSubmit} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Book Title *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={bookForm.title}
-                                            onChange={(e) => setBookForm({...bookForm, title: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Author *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={bookForm.author}
-                                            onChange={(e) => setBookForm({...bookForm, author: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ISBN *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={bookForm.isbn}
-                                            onChange={(e) => setBookForm({...bookForm, isbn: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={bookForm.category}
-                                            onChange={(e) => setBookForm({...bookForm, category: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Publisher</label>
-                                        <input
-                                            type="text"
-                                            value={bookForm.publisher}
-                                            onChange={(e) => setBookForm({...bookForm, publisher: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Publish Year</label>
-                                        <input
-                                            type="number"
-                                            value={bookForm.publishYear}
-                                            onChange={(e) => setBookForm({...bookForm, publishYear: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Edition</label>
-                                        <input
-                                            type="text"
-                                            value={bookForm.edition}
-                                            onChange={(e) => setBookForm({...bookForm, edition: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pages</label>
-                                        <input
-                                            type="number"
-                                            value={bookForm.pages}
-                                            onChange={(e) => setBookForm({...bookForm, pages: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Language</label>
-                                        <input
-                                            type="text"
-                                            value={bookForm.language}
-                                            onChange={(e) => setBookForm({...bookForm, language: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity *</label>
-                                        <input
-                                            type="number"
-                                            required
-                                            value={bookForm.quantity}
-                                            onChange={(e) => setBookForm({...bookForm, quantity: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price (₹)</label>
-                                        <input
-                                            type="number"
-                                            value={bookForm.price}
-                                            onChange={(e) => setBookForm({...bookForm, price: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shelf</label>
-                                        <input
-                                            type="text"
-                                            value={bookForm.shelf}
-                                            onChange={(e) => setBookForm({...bookForm, shelf: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rack</label>
-                                        <input
-                                            type="text"
-                                            value={bookForm.rack}
-                                            onChange={(e) => setBookForm({...bookForm, rack: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                                        <textarea
-                                            rows="3"
-                                            value={bookForm.description}
-                                            onChange={(e) => setBookForm({...bookForm, description: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                        ></textarea>
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isAddingBook || isUpdatingBook}
-                                        className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-500 hover:to-purple-500 transition-colors disabled:opacity-50"
-                                    >
-                                        {isAddingBook || isUpdatingBook ? 'Saving...' : (selectedItem ? 'Update' : 'Add')}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Unified Modal */}
+            <Form
+                isOpen={isModalOpen}
+                formData={formData}
+                setFormData={setFormData}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleSubmit}
+                initialData={formInitialData}
+                isLoading={isCreatingLibrary || isUpdatingLibrary || isAddingBook || isUpdatingBook}
+                title={modalType === 'library' ? 'Library' : 'Book'}
+                fields={modalType === 'library' ? libraryFields : bookFields}
+            />
         </div>
     );
 };

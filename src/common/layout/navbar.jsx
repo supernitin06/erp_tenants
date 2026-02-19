@@ -59,18 +59,37 @@ const Navbar = ({ onMenuClick }) => {
 
     // Theme management
     useEffect(() => {
-        const root = document.documentElement;
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        const activeTheme = theme === 'system' ? systemTheme : theme;
+        const root = window.document.documentElement;
         
-        root.classList.remove('light', 'dark');
-        root.classList.add(activeTheme);
-        localStorage.setItem('theme', theme);
+        const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         
-        // Update meta theme-color
-        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', activeTheme === 'dark' ? '#0f172a' : '#ffffff');
+        const updateTheme = (currentTheme) => {
+            const activeTheme = currentTheme === 'system' ? getSystemTheme() : currentTheme;
+            
+            root.classList.remove('light', 'dark');
+            root.classList.add(activeTheme);
+            
+            // Update meta theme-color
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute('content', activeTheme === 'dark' ? '#0f172a' : '#ffffff');
+            }
+        };
+
+        updateTheme(theme);
+        
+        try {
+            localStorage.setItem('theme', theme);
+        } catch (e) {
+            console.error("Failed to save theme preference:", e);
+        }
+        
+        if (theme === 'system') {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const handleChange = () => updateTheme('system');
+            
+            mediaQuery.addEventListener('change', handleChange);
+            return () => mediaQuery.removeEventListener('change', handleChange);
         }
     }, [theme]);
 
@@ -274,7 +293,10 @@ const Navbar = ({ onMenuClick }) => {
                             <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl shadow-slate-200/20 dark:shadow-slate-900/50 overflow-hidden animate-slideDown">
                                 <div className="p-2">
                                     <button
-                                        onClick={() => setTheme('light')}
+                                        onClick={() => {
+                                            setTheme('light');
+                                            setIsThemeOpen(false);
+                                        }}
                                         className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
                                             theme === 'light'
                                                 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
@@ -291,7 +313,10 @@ const Navbar = ({ onMenuClick }) => {
                                     </button>
 
                                     <button
-                                        onClick={() => setTheme('dark')}
+                                        onClick={() => {
+                                            setTheme('dark');
+                                            setIsThemeOpen(false);
+                                        }}
                                         className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
                                             theme === 'dark'
                                                 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
@@ -308,7 +333,10 @@ const Navbar = ({ onMenuClick }) => {
                                     </button>
 
                                     <button
-                                        onClick={() => setTheme('system')}
+                                        onClick={() => {
+                                            setTheme('system');
+                                            setIsThemeOpen(false);
+                                        }}
                                         className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
                                             theme === 'system'
                                                 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
@@ -520,7 +548,7 @@ const Navbar = ({ onMenuClick }) => {
             </nav>
 
             {/* Add these styles to your global CSS */}
-            <style jsx>{`
+            <style>{`
                 @keyframes slideDown {
                     from {
                         opacity: 0;
