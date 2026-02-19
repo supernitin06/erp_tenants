@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/authcontext';
-import { 
-  BellIcon, 
-  UserCircleIcon, 
-  Bars3Icon,
-  MagnifyingGlassIcon,
-  ArrowRightOnRectangleIcon,
-  UserIcon,
-  Cog6ToothIcon,
-  QuestionMarkCircleIcon,
-  ArrowsPointingOutIcon,
-  ArrowsPointingInIcon,
-  XMarkIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  InformationCircleIcon,
-  SunIcon,
-  MoonIcon,
-  ComputerDesktopIcon,
-  SparklesIcon,
-  ChevronDownIcon
+import {
+    BellIcon,
+    UserCircleIcon,
+    Bars3Icon,
+    MagnifyingGlassIcon,
+    ArrowRightOnRectangleIcon,
+    UserIcon,
+    Cog6ToothIcon,
+    QuestionMarkCircleIcon,
+    ArrowsPointingOutIcon,
+    ArrowsPointingInIcon,
+    XMarkIcon,
+    CheckCircleIcon,
+    ExclamationCircleIcon,
+    InformationCircleIcon,
+    SunIcon,
+    MoonIcon,
+    ComputerDesktopIcon,
+    SparklesIcon,
+    ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 
@@ -43,7 +43,7 @@ const Navbar = ({ onMenuClick }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
-    
+
     const profileRef = useRef(null);
     const notificationsRef = useRef(null);
     const themeRef = useRef(null);
@@ -60,15 +60,21 @@ const Navbar = ({ onMenuClick }) => {
     // Theme management
     useEffect(() => {
         const root = window.document.documentElement;
-        
+
         const getSystemTheme = () => window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        
+
         const updateTheme = (currentTheme) => {
             const activeTheme = currentTheme === 'system' ? getSystemTheme() : currentTheme;
-            
-            root.classList.remove('light', 'dark');
-            root.classList.add(activeTheme);
-            
+
+            // Remove previous classes to avoid conflicts
+            if (activeTheme === 'dark') {
+                root.classList.add('dark');
+                root.classList.remove('light');
+            } else {
+                root.classList.add('light');
+                root.classList.remove('dark');
+            }
+
             // Update meta theme-color
             const metaThemeColor = document.querySelector('meta[name="theme-color"]');
             if (metaThemeColor) {
@@ -77,17 +83,18 @@ const Navbar = ({ onMenuClick }) => {
         };
 
         updateTheme(theme);
-        
+
         try {
             localStorage.setItem('theme', theme);
         } catch (e) {
             console.error("Failed to save theme preference:", e);
         }
-        
+
+        // Listen for system changes if theme is set to system
         if (theme === 'system') {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
             const handleChange = () => updateTheme('system');
-            
+
             mediaQuery.addEventListener('change', handleChange);
             return () => mediaQuery.removeEventListener('change', handleChange);
         }
@@ -136,8 +143,8 @@ const Navbar = ({ onMenuClick }) => {
 
     // Mark notification as read
     const markAsRead = (notificationId) => {
-        setNotifications(prev => 
-            prev.map(notif => 
+        setNotifications(prev =>
+            prev.map(notif =>
                 notif.id === notificationId ? { ...notif, read: true } : notif
             )
         );
@@ -146,7 +153,7 @@ const Navbar = ({ onMenuClick }) => {
 
     // Mark all as read
     const markAllAsRead = () => {
-        setNotifications(prev => 
+        setNotifications(prev =>
             prev.map(notif => ({ ...notif, read: true }))
         );
         setUnreadCount(0);
@@ -154,7 +161,7 @@ const Navbar = ({ onMenuClick }) => {
 
     // Get notification icon based on type
     const getNotificationIcon = (type) => {
-        switch(type) {
+        switch (type) {
             case 'success':
                 return <CheckCircleIcon className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />;
             case 'warning':
@@ -168,7 +175,7 @@ const Navbar = ({ onMenuClick }) => {
 
     // Get theme icon
     const getThemeIcon = () => {
-        switch(theme) {
+        switch (theme) {
             case 'light':
                 return <SunIcon className="w-5 h-5 text-amber-500" />;
             case 'dark':
@@ -180,18 +187,18 @@ const Navbar = ({ onMenuClick }) => {
 
     // Format time
     const formatTime = (date) => {
-        return date.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
             minute: '2-digit',
-            hour12: true 
+            hour12: true
         });
     };
 
     // Format date
     const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', { 
+        return date.toLocaleDateString('en-US', {
             weekday: 'short',
-            month: 'short', 
+            month: 'short',
             day: 'numeric'
         });
     };
@@ -199,7 +206,7 @@ const Navbar = ({ onMenuClick }) => {
     return (
         <>
             <nav className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50 shadow-lg shadow-slate-200/20 dark:shadow-slate-900/20 transition-colors duration-300">
-                
+
                 {/* Left section - Menu and Search */}
                 <div className="flex items-center gap-4">
                     <button
@@ -220,14 +227,12 @@ const Navbar = ({ onMenuClick }) => {
                     </div>
 
                     {/* Search Bar */}
-                    <div className={`relative hidden sm:block group transition-all duration-300 ${
-                        isSearchFocused ? 'scale-105' : ''
-                    }`}>
-                        <MagnifyingGlassIcon className={`w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-                            isSearchFocused 
-                                ? 'text-blue-500 dark:text-blue-400' 
+                    <div className={`relative hidden sm:block group transition-all duration-300 ${isSearchFocused ? 'scale-105' : ''
+                        }`}>
+                        <MagnifyingGlassIcon className={`w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-300 ${isSearchFocused
+                                ? 'text-blue-500 dark:text-blue-400'
                                 : 'text-slate-400 dark:text-slate-500'
-                        }`} />
+                            }`} />
                         <input
                             ref={searchInputRef}
                             type="text"
@@ -239,14 +244,14 @@ const Navbar = ({ onMenuClick }) => {
                             className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 focus:outline-none w-48 lg:w-80 transition-all duration-300 hover:bg-slate-200 dark:hover:bg-slate-800/70"
                         />
                         {searchQuery && (
-                            <button 
+                            <button
                                 onClick={() => setSearchQuery('')}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                             >
                                 <XMarkIcon className="w-4 h-4" />
                             </button>
                         )}
-                        
+
                         {/* Search shortcut hint */}
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-1">
                             <kbd className="px-1.5 py-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600">
@@ -297,15 +302,13 @@ const Navbar = ({ onMenuClick }) => {
                                             setTheme('light');
                                             setIsThemeOpen(false);
                                         }}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
-                                            theme === 'light'
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${theme === 'light'
                                                 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
                                                 : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
-                                        }`}
+                                            }`}
                                     >
-                                        <SunIcon className={`w-5 h-5 ${
-                                            theme === 'light' ? 'text-blue-500' : 'text-slate-500'
-                                        }`} />
+                                        <SunIcon className={`w-5 h-5 ${theme === 'light' ? 'text-blue-500' : 'text-slate-500'
+                                            }`} />
                                         <span className="flex-1 text-left">Light</span>
                                         {theme === 'light' && (
                                             <CheckCircleIcon className="w-4 h-4 text-blue-500" />
@@ -317,15 +320,13 @@ const Navbar = ({ onMenuClick }) => {
                                             setTheme('dark');
                                             setIsThemeOpen(false);
                                         }}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
-                                            theme === 'dark'
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${theme === 'dark'
                                                 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
                                                 : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
-                                        }`}
+                                            }`}
                                     >
-                                        <MoonIcon className={`w-5 h-5 ${
-                                            theme === 'dark' ? 'text-blue-500' : 'text-slate-500'
-                                        }`} />
+                                        <MoonIcon className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-500' : 'text-slate-500'
+                                            }`} />
                                         <span className="flex-1 text-left">Dark</span>
                                         {theme === 'dark' && (
                                             <CheckCircleIcon className="w-4 h-4 text-blue-500" />
@@ -337,15 +338,13 @@ const Navbar = ({ onMenuClick }) => {
                                             setTheme('system');
                                             setIsThemeOpen(false);
                                         }}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
-                                            theme === 'system'
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${theme === 'system'
                                                 ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
                                                 : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
-                                        }`}
+                                            }`}
                                     >
-                                        <ComputerDesktopIcon className={`w-5 h-5 ${
-                                            theme === 'system' ? 'text-blue-500' : 'text-slate-500'
-                                        }`} />
+                                        <ComputerDesktopIcon className={`w-5 h-5 ${theme === 'system' ? 'text-blue-500' : 'text-slate-500'
+                                            }`} />
                                         <span className="flex-1 text-left">System</span>
                                         {theme === 'system' && (
                                             <CheckCircleIcon className="w-4 h-4 text-blue-500" />
@@ -405,27 +404,25 @@ const Navbar = ({ onMenuClick }) => {
                                         </button>
                                     )}
                                 </div>
-                                
+
                                 <div className="max-h-96 overflow-y-auto">
                                     {notifications.length > 0 ? (
                                         notifications.map((notification) => (
                                             <div
                                                 key={notification.id}
                                                 onClick={() => markAsRead(notification.id)}
-                                                className={`p-4 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer ${
-                                                    !notification.read ? 'bg-blue-50/50 dark:bg-blue-500/5' : ''
-                                                }`}
+                                                className={`p-4 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors cursor-pointer ${!notification.read ? 'bg-blue-50/50 dark:bg-blue-500/5' : ''
+                                                    }`}
                                             >
                                                 <div className="flex gap-3">
                                                     <div className="flex-shrink-0">
                                                         {getNotificationIcon(notification.type)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className={`text-sm ${
-                                                            !notification.read 
-                                                                ? 'text-slate-900 dark:text-white font-medium' 
+                                                        <p className={`text-sm ${!notification.read
+                                                                ? 'text-slate-900 dark:text-white font-medium'
                                                                 : 'text-slate-600 dark:text-slate-400'
-                                                        }`}>
+                                                            }`}>
                                                             {notification.title}
                                                         </p>
                                                         <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
@@ -445,7 +442,7 @@ const Navbar = ({ onMenuClick }) => {
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <div className="p-3 border-t border-slate-200 dark:border-slate-700 text-center">
                                     <button className="text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                         View all notifications
@@ -484,14 +481,13 @@ const Navbar = ({ onMenuClick }) => {
                                         {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                                     </span>
                                 </div>
-                                
+
                                 {/* Online status indicator */}
                                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
                             </div>
 
-                            <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-300 hidden md:block ${
-                                isProfileOpen ? 'rotate-180' : ''
-                            }`} />
+                            <ChevronDownIcon className={`w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform duration-300 hidden md:block ${isProfileOpen ? 'rotate-180' : ''
+                                }`} />
                         </button>
 
                         {/* Profile Dropdown */}
@@ -517,21 +513,21 @@ const Navbar = ({ onMenuClick }) => {
                                         <span className="flex-1 text-left">My Profile</span>
                                         <span className="text-xs text-slate-400">✨</span>
                                     </button>
-                                    
+
                                     <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all duration-200 group">
                                         <Cog6ToothIcon className="w-5 h-5 text-slate-500 dark:text-slate-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" />
                                         <span className="flex-1 text-left">Settings</span>
                                         <span className="text-xs text-slate-400">⚙️</span>
                                     </button>
-                                    
+
                                     <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all duration-200 group">
                                         <QuestionMarkCircleIcon className="w-5 h-5 text-slate-500 dark:text-slate-500 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" />
                                         <span className="flex-1 text-left">Help & Support</span>
                                         <span className="text-xs text-slate-400">?</span>
                                     </button>
-                                    
+
                                     <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
-                                    
+
                                     <button
                                         onClick={logout}
                                         className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:text-white hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 rounded-xl transition-all duration-200 group"

@@ -75,6 +75,7 @@ const BookCard = ({ book, onEdit, onDelete, isFavorite, onToggleFavorite }) => {
               onClick={() => onToggleFavorite(bookId)}
               className="p-2 bg-white/90 backdrop-blur rounded-full hover:bg-white transition-all transform hover:scale-110"
             >
+<<<<<<< HEAD
               {isFavorite ? (
                 <HeartIconSolid className="w-4 h-4 text-rose-500" />
               ) : (
@@ -94,6 +95,193 @@ const BookCard = ({ book, onEdit, onDelete, isFavorite, onToggleFavorite }) => {
               <TrashIcon className="w-4 h-4 text-rose-600" />
             </button>
           </div>
+=======
+                {/* Image Container */}
+                <div className="relative h-56 overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-800">
+                    {book.coverImageUrl || book.image ? (
+                        <img 
+                            src={book.coverImageUrl || book.image} 
+                            alt={book.title}
+                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <PhotoIcon className="w-20 h-20 text-slate-300 dark:text-slate-600" />
+                        </div>
+                    )}
+                    
+                    {/* Overlay with actions */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute top-3 right-3 flex gap-2">
+                            <button
+                                onClick={() => toggleFavorite(bookId)}
+                                className="p-2 bg-white/90 backdrop-blur rounded-full hover:bg-white transition-all transform hover:scale-110"
+                            >
+                                {isFavorite ? (
+                                    <HeartIconSolid className="w-4 h-4 text-rose-500" />
+                                ) : (
+                                    <HeartIcon className="w-4 h-4 text-slate-700" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => handleEdit(book)}
+                                className="p-2 bg-white/90 backdrop-blur rounded-full hover:bg-white transition-all transform hover:scale-110"
+                            >
+                                <PencilSquareIcon className="w-4 h-4 text-indigo-600" />
+                            </button>
+                            <button
+                                onClick={() => handleDelete(bookId)}
+                                className="p-2 bg-white/90 backdrop-blur rounded-full hover:bg-white transition-all transform hover:scale-110"
+                            >
+                                <TrashIcon className="w-4 h-4 text-rose-600" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="absolute top-3 left-3">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
+                            book.quantity > 0 
+                                ? 'bg-emerald-500/90 text-white' 
+                                : 'bg-rose-500/90 text-white'
+                        }`}>
+                            {book.quantity > 0 ? 'Available' : 'Out of Stock'}
+                        </span>
+                    </div>
+
+                    {/* Price Badge */}
+                    {book.price && (
+                        <div className="absolute bottom-3 left-3">
+                            <span className="px-3 py-1 bg-indigo-600 text-white rounded-full text-sm font-bold shadow-lg">
+                                ${book.price}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Content */}
+                <div className="p-5">
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1 line-clamp-1">
+                        {book.title}
+                    </h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-1">
+                        <UserIcon className="w-4 h-4" />
+                        {book.author || 'Unknown Author'}
+                    </p>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        {book.category && (
+                            <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-medium">
+                                {book.category}
+                            </span>
+                        )}
+                        {book.language && (
+                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-medium">
+                                {book.language}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Description - from API */}
+                    {book.description && (
+                        <div className={`mt-3 text-sm text-slate-600 dark:text-slate-400 transition-all duration-300 ${
+                            showDetails ? 'line-clamp-none' : 'line-clamp-2'
+                        }`}>
+                            {book.description}
+                        </div>
+                    )}
+
+                    {/* Quick Info */}
+                    <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700 pt-3">
+                        {book.publishYear && (
+                            <div className="flex items-center gap-1">
+                                <CalendarIcon className="w-3 h-3" />
+                                <span>{book.publishYear}</span>
+                            </div>
+                        )}
+                        {book.pages && (
+                            <div className="flex items-center gap-1">
+                                <DocumentTextIcon className="w-3 h-3" />
+                                <span>{book.pages}p</span>
+                            </div>
+                        )}
+                        {book.isbn && (
+                            <div className="flex items-center gap-1">
+                                <IdentificationIcon className="w-3 h-3" />
+                                <span className="truncate">{book.isbn.slice(-4)}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Quantity Indicator */}
+                    <div className="mt-3 flex items-center justify-between">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                            Quantity: {book.quantity || 0}
+                        </span>
+                        <div className="flex gap-1">
+                            {[...Array(Math.min(book.quantity || 0, 5))].map((_, i) => (
+                                <div key={i} className="w-2 h-2 bg-indigo-500 rounded-full" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // List View Component
+    const BookListItem = ({ book }) => (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow hover:shadow-lg transition-all duration-300 border border-slate-200 dark:border-slate-700 p-4">
+            <div className="flex gap-4">
+                <div className="w-24 h-32 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-slate-700 dark:to-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+                    {book.coverImage || book.image ? (
+                        <img src={book.coverImage || book.image} alt={book.title} className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <PhotoIcon className="w-10 h-10 text-slate-400" />
+                        </div>
+                    )}
+                </div>
+                
+                <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{book.title}</h3>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                                <UserIcon className="w-4 h-4" />
+                                {book.author}
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => handleEdit(book)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
+                                <PencilSquareIcon className="w-5 h-5 text-indigo-600" />
+                            </button>
+                            <button onClick={() => handleDelete(book.id || book._id)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
+                                <TrashIcon className="w-5 h-5 text-rose-600" />
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {book.description && (
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                            {book.description}
+                        </p>
+                    )}
+                    
+                    <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="flex items-center gap-1"><TagIcon className="w-3 h-3" />{book.category}</span>
+                        <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" />{book.publishYear}</span>
+                        <span className="flex items-center gap-1"><DocumentTextIcon className="w-3 h-3" />{book.pages}p</span>
+                        <span className="flex items-center gap-1"><CurrencyDollarIcon className="w-3 h-3" />${book.price}</span>
+                        <span className={`flex items-center gap-1 ${book.quantity > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {book.quantity > 0 ? <CheckCircleIcon className="w-3 h-3" /> : <ExclamationCircleIcon className="w-3 h-3" />}
+                            Qty: {book.quantity}
+                        </span>
+                    </div>
+                </div>
+            </div>
+>>>>>>> 8245d72eb88053c66c81b2426eca892d1e0f4818
         </div>
 
         {/* Status Badge */}

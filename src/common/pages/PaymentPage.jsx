@@ -42,6 +42,7 @@ const PaymentPage = () => {
     };
 
     const [loading, setLoading] = useState(false);
+    const [verifying, setVerifying] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('modal');
     const [qrData, setQrData] = useState(null);
     const [polling, setPolling] = useState(false);
@@ -93,6 +94,7 @@ const PaymentPage = () => {
                 description: `Subscription for ${planName}`,
                 order_id: orderId,
                 handler: async function (response) {
+                    setVerifying(true); // Start full-screen loader
                     const verifyToastId = toast.loading("Verifying payment...");
                     try {
                         const verifyResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/verify', {
@@ -125,6 +127,7 @@ const PaymentPage = () => {
                             throw new Error(result.message || "Verification failed");
                         }
                     } catch (err) {
+                        setVerifying(false); // Stop loader on error
                         toast.error(err.message || "Verification failed", { id: verifyToastId });
                     }
                 },
@@ -207,6 +210,7 @@ const PaymentPage = () => {
                 if (data.success) {
                     clearInterval(interval);
                     setPolling(false);
+                    setVerifying(true); // START FULL SCREEN LOADER
                     toast.success("Payment Received! Redirecting...");
                     setTimeout(async () => {
                         try {
@@ -253,6 +257,45 @@ const PaymentPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 py-12 px-4 relative overflow-hidden">
             <Toaster position="top-center" reverseOrder={false} />
+
+            {/* Full Screen Freeze Loader */}
+            <AnimatePresence>
+                {verifying && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-4 cursor-wait"
+                    >
+                        <div className="relative">
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                className="w-24 h-24 border-4 border-violet-200 border-t-violet-600 rounded-full"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <ShieldCheckIcon className="w-10 h-10 text-violet-600" />
+                            </div>
+                        </div>
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="mt-8 text-center"
+                        >
+                            <h2 className="text-2xl font-bold text-slate-800 mb-2">Verifying Payment</h2>
+                            <p className="text-slate-600 max-w-md mx-auto">
+                                Please wait while we securely verify your transaction. Do not close this window or press back.
+                            </p>
+                            <div className="mt-6 flex justify-center gap-2">
+                                <span className="w-2 h-2 bg-violet-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
+                                <span className="w-2 h-2 bg-violet-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                                <span className="w-2 h-2 bg-violet-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* Decorative elements */}
             <motion.div
                 animate={{
