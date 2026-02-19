@@ -31,30 +31,31 @@ const Sidebar = ({ closeSidebar }) => {
     const [expandedDomains, setExpandedDomains] = useState({});
     const [hoveredDomain, setHoveredDomain] = useState(null);
 
+    // Ensure tenantName is defined before rendering links
+    const currentTenant = tenantName || user?.tenantUsername || '';
+
     useEffect(() => {
-        if (user && tenantName && user.tenantUsername?.toLowerCase() !== tenantName.toLowerCase()) {
-            console.warn(`Session mismatch: Logged in as ${user.tenantUsername} but visiting ${tenantName}. Redirecting...`);
+        if (user && currentTenant && user.tenantUsername?.toLowerCase() !== currentTenant.toLowerCase()) {
+            console.warn(`Session mismatch: Logged in as ${user.tenantUsername} but visiting ${currentTenant}. Redirecting...`);
             navigate(`/${user.tenantUsername}`, { replace: true });
         }
-    }, [user, tenantName, navigate]);
+    }, [user, currentTenant, navigate]);
 
     const toggleDomain = (domainId) => {
         setExpandedDomains(prev => {
             const isCurrentlyOpen = !!prev[domainId];
-            // If currently open, close it (return empty object or just remove this key).
-            // If currently closed, return new object with ONLY this domainId set to true.
             return isCurrentlyOpen ? {} : { [domainId]: true };
         });
     };
 
     const getDomainIcon = (domainName) => {
-        const name = domainName?.toUpperCase();
+        const name = domainName?.toUpperCase()?.trim();
 
         // Modern icon mapping with gradients
         const iconMap = [
             { pattern: 'ACADEMIC', icon: AcademicCapIcon, gradient: 'from-emerald-500 to-teal-500' },
             { pattern: 'HOSPITAL', icon: BuildingOfficeIcon, gradient: 'from-rose-500 to-pink-500' },
-            { pattern: 'EXAMINATION', icon: ClipboardDocumentCheckIcon, gradient: 'from-amber-500 to-orange-500' },
+            { pattern: 'EXAM', icon: ClipboardDocumentCheckIcon, gradient: 'from-amber-500 to-orange-500' },
             { pattern: 'LIBRARY', icon: BookOpenIcon, gradient: 'from-indigo-500 to-purple-500' },
             { pattern: 'CLASS', icon: UserGroupIcon, gradient: 'from-blue-500 to-cyan-500' },
             { pattern: 'SALARY', icon: CurrencyDollarIcon, gradient: 'from-green-500 to-emerald-500' },
@@ -79,24 +80,43 @@ const Sidebar = ({ closeSidebar }) => {
     };
 
     const getFeaturePath = (featureName) => {
-        const name = featureName?.toUpperCase() || '';
-        if (name.includes('STUDENT') && name.includes('MANAGEMENT')) return 'student';
-        if (name.includes('TEACHER') && name.includes('MANAGEMENT')) return 'teacher';
+        const name = featureName?.toUpperCase()?.trim() || '';
+        if (!name) return '';
+
+        // Specific cases MUST come before generic ones
+        // Attendance check first
         if (name.includes('TEACHER') && (name.includes('ATTENDANCE') || name.includes('ATTANDANCE'))) return 'teacher-attendance';
         if (name.includes('STUDENT') && (name.includes('ATTENDANCE') || name.includes('ATTANDANCE'))) return 'student-attendance';
+
+        // Management checks
+        if (name.includes('STUDENT') && name.includes('MANAGEMENT')) return 'student';
+        // Handle "Teacher Management" or just "Teacher" mapping to 'teacher' route
+        if (name.includes('TEACHER') && name.includes('MANAGEMENT')) return 'teacher';
+
+        // Exam checks
         if (name.includes('EXAM') && name.includes('DATESHEET')) return 'exam-datesheet';
         if (name.includes('EXAM') && name.includes('RESULT')) return 'exam-result';
+        if (name.includes('EXAM') && name.includes('SCHEDULE')) return 'exam-schedule';
+        if (name.includes('EXAM') && name.includes('MANAGEMENT')) return 'exam-management';
+
+        // Library checks
         if (name.includes('LIBRARY') && name.includes('BOOKS')) return 'library-books-management';
         if (name.includes('BOOK') && name.includes('MANAGEMENT')) return 'library-books-management';
         if (name.includes('LIBRARY')) return 'library';
+
+        // Other Management checks
         if (name.includes('CLASS')) return 'class-management';
         if (name.includes('SALARY')) return 'salary-management';
         if (name.includes('FEE')) return 'fee-management';
+
+        // Hospital checks
         if (name.includes('PATIENT')) return 'patient-management';
         if (name.includes('DOCTOR') && name.includes('APPOINTMENT')) return 'doctor-appointment';
         if (name.includes('DOCTOR')) return 'doctor-management';
         if (name.includes('LAB')) return 'lab-management';
         if (name.includes('ROOM')) return 'room-management';
+
+        // Fallback: lowercase and replace spaces/underscores with hyphens
         return featureName.toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-');
     };
 
@@ -115,7 +135,7 @@ const Sidebar = ({ closeSidebar }) => {
                             <SparklesIcon className="w-5 h-5 text-white" />
                         </div>
                         <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent capitalize truncate">
-                            {tenantName || 'ERP System'}
+                            {currentTenant || 'ERP System'}
                         </h2>
                     </div>
 
@@ -131,7 +151,7 @@ const Sidebar = ({ closeSidebar }) => {
             <nav className="flex-1 p-4 flex flex-col gap-1.5 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
                 {/* Dashboard Link with special styling */}
                 <NavLink
-                    to={`/${tenantName}`}
+                    to={`/${currentTenant}`}
                     end
                     onClick={closeSidebar}
                     className={({ isActive }) => `
@@ -176,6 +196,7 @@ const Sidebar = ({ closeSidebar }) => {
                     const { Icon, gradient } = getDomainIcon(domain.domain_name);
                     const isExpanded = expandedDomains[domain.domainId];
                     const isHovered = hoveredDomain === domain.domainId;
+                    const cleanDomainName = domain.domain_name?.trim().toLowerCase() || 'domain';
 
                     return (
                         <div key={domain.domainId} className="flex flex-col gap-1">
@@ -232,7 +253,7 @@ const Sidebar = ({ closeSidebar }) => {
                                     {domain.features.map((feature, featureIndex) => (
                                         <NavLink
                                             key={feature.featureId}
-                                            to={`/${tenantName}/${domain.domain_name}/${getFeaturePath(feature.feature_name)}`}
+                                            to={`/${currentTenant}/${cleanDomainName}/${getFeaturePath(feature.feature_name)}`}
                                             onClick={closeSidebar}
                                             className={({ isActive }) => `
                                                 group relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 overflow-hidden

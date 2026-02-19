@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './sidebar';
 import Navbar from './navbar';
 
 const Layout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const location = useLocation();
 
     return (
         <div className="flex min-h-screen bg-slate-50 dark:bg-[#0B1120] relative transition-colors duration-300">
@@ -30,7 +31,7 @@ const Layout = () => {
                 <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
 
                 <main className="p-4 md:p-8 overflow-x-hidden">
-                    <Outlet />
+                    <Outlet key={location.pathname} />
                 </main>
             </div>
         </div>

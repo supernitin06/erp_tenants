@@ -8,17 +8,27 @@ import LibraryBooks from './pages/LibraryBooks';
 import ClassManagement from './pages/ClassManagement';
 import SalaryManagement from './pages/SalaryManagement';
 import FeeManagement from './pages/FeeManagement';
+import TeacherAttendance from './pages/TeacherAttendance';
+import StudentAttendance from './pages/StudentAttendance';
+import ExamManagement from './pages/ExamManagement';
+import ExamSchedule from './pages/ExamSchedule';
 
-import ExamManagement from './pages/ExamManagement.jsx';
-import ExamSchedule from './pages/ExamShedule.jsx';
 const schoolRoutes = [
     {
         path: 'student',
         element: <Student />,
     },
     {
+        path: 'student-attendance',
+        element: <StudentAttendance />,
+    },
+    {
         path: 'teacher',
         element: <TeacherManagement />,
+    },
+    {
+        path: 'teacher-attendance',
+        element: <TeacherAttendance />,
     },
     {
         path: 'library',
@@ -37,11 +47,14 @@ const schoolRoutes = [
         element: <ExamSchedule />,
     },
     {
+        path: 'exam-schedule/:classId/:examId',
+        element: <ExamSchedule />,
+    },
+    {
         path: 'exam-result',
         element: <ExamResult />,
     },
     {
-
         path: 'library-books-management',
         element: <LibraryBooks />,
     },
@@ -57,8 +70,6 @@ const schoolRoutes = [
         path: 'fee-management',
         element: <FeeManagement />,
     },
-
-
 ];
 
 export default schoolRoutes;

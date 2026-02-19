@@ -31,46 +31,6 @@ const Form = ({
   const [activeTab, setActiveTab] = useState('basic');
   const [imagePreview, setImagePreview] = useState(null);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        ...initialData,
-        dateOfBirth: initialData.dateOfBirth
-          ? initialData.dateOfBirth.split('T')[0]
-          : '',
-      });
-
-      const imageField = Object.keys(fields || {}).find(key => fields[key].type === 'image');
-      if (imageField && initialData[imageField]) {
-        setImagePreview(initialData[imageField]);
-      }
-    } else {
-      const emptyData = Object.keys(formData).reduce((acc, key) => {
-        acc[key] = '';
-        return acc;
-      }, {});
-      setFormData(emptyData);
-      setImagePreview(null);
-    }
-  }, [initialData, isOpen, fields]); // Added fields and setFormData to dep array implicitly by scope but good to be explicit if needed, though usually stable.
-
-  // useEffect(() => {
-  //     if (initialData) {
-  //         setFormData({
-  //             ...initialData,
-  //             dateOfBirth: initialData.dateOfBirth
-  //                 ? initialData.dateOfBirth.split('T')[0]
-  //                 : '',
-  //         });
-  //     } else {
-  //         const emptyData = Object.keys(formData).reduce((acc, key) => {
-  //             acc[key] = '';
-  //             return acc;
-  //         }, {});
-  //         setFormData(emptyData);
-  //     }
-  // }, [initialData, isOpen]);
-
 
   useEffect(() => {
     if (initialData) {
@@ -112,12 +72,16 @@ const Form = ({
         setFormData(initialData); // default fallback
       }
     } else {
+      // Only reset if formData is not already empty/default to avoid loops if setFormData triggers re-render
+      // But better: relies on isOpen changing to reset.
+      // We will assume that when isOpen opens, we want to reset if no initialData.
+
       setFormData(Object.keys(formData).reduce((acc, key) => {
         acc[key] = '';
         return acc;
       }, {}));
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, type]); // Removed 'fields' and 'formData' to avoid infinite loops
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -429,7 +393,7 @@ const Form = ({
       </div>
 
       {/* Custom Scrollbar Styles */}
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }

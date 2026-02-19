@@ -20,7 +20,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const ExamManagement = () => {
-    const { tenantName } = useParams();
+    const { tenantName, domain } = useParams();
     const navigate = useNavigate();
 
     const initialFormState = {
@@ -126,7 +126,7 @@ const ExamManagement = () => {
             render: (value, row) => (
                 <span
                     onClick={() =>
-                        navigate(`/${tenantName}/exam-schedule/${selectedClassId}/${row.id}`)
+                        navigate(`/${tenantName}/${domain}/exam-schedule/${selectedClassId}/${row.id}`)
 
                     }
                     className="px-2 py-1 bg-indigo-500/20 text-indigo-600 rounded-md text-xs font-bold cursor-pointer hover:bg-indigo-500/30 transition"
