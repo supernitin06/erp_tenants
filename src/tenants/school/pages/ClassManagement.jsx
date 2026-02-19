@@ -11,7 +11,8 @@ import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
 import DataCards from '../../../common/components/ui/DataCards';
 import StatsCard from '../../../common/components/ui/StatsCard';
-import SearchBar from '../../../common/components/ui/SearchBar';
+// import SearchBar from '../../../common/components/ui/SearchBar';
+import SearchAndFilter from '../../../common/components/ui/SearchAndFilter';
 
 import {
     PlusIcon,
@@ -95,12 +96,17 @@ const ClassManagement = () => {
             cls.section?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             cls.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
+        const matchesName =
+            !activeFilters.name ||
+            cls.name === activeFilters.name;
+
         const matchesYear =
             !activeFilters.academicYear ||
             cls.academicYear === activeFilters.academicYear;
 
-        return matchesSearch && matchesYear;
+        return matchesSearch && matchesName && matchesYear;
     });
+
 
     const handleDelete = async (id) => {
         if (deleteConfirm === id) {
@@ -366,16 +372,37 @@ const ClassManagement = () => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <SearchBar
+                    <SearchAndFilter
+                        searchTerm={searchQuery}
+                        setSearchTerm={setSearchQuery}
+                        filters={activeFilters}
+                        setFilters={setActiveFilters}
+                        filterOptions={[
+                            {
+                                key: 'name',
+                                label: 'Class Name',
+                                placeholder: 'All Classes',
+                                defaultValue: '',
+                                options: classNames.map(name => ({
+                                    label: name,
+                                    value: name
+                                }))
+                            },
+                            {
+                                key: 'academicYear',
+                                label: 'Academic Year',
+                                placeholder: 'All Years',
+                                defaultValue: '',
+                                options: academicYears.map(year => ({
+                                    label: year,
+                                    value: year
+                                }))
+                            }
+                        ]}
                         placeholder="Search classes..."
-                        filters={searchFilters}
-                        suggestions={classes.map(c => c.name)}
-                        onSearch={(term) => setSearchQuery(term)}
-                        onFilter={(filters) => setActiveFilters(filters)}
-                        debounceTime={300}
-                        variant="default"
-                        size="md"
+                        loading={isLoading}
                     />
+
                     <div className="mt-3 text-sm text-gray-500">
                         Showing {filteredClasses.length} of {totalClasses} classes
                     </div>

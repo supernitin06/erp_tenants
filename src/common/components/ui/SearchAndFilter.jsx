@@ -15,7 +15,7 @@ const SearchAndFilter = ({
 
   // Calculate active filters count
   const activeFiltersCount = useMemo(() => {
-    return Object.values(filters).filter(value => 
+    return Object.values(filters).filter(value =>
       value && value !== 'all' && value !== ''
     ).length;
   }, [filters]);
@@ -51,7 +51,7 @@ const SearchAndFilter = ({
             placeholder={placeholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:text-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
           />
         </div>
 
@@ -63,7 +63,7 @@ const SearchAndFilter = ({
               key={option.key}
               value={filters[option.key] || ''}
               onChange={(e) => handleFilterChange(option.key, e.target.value)}
-              className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all min-w-[150px]"
+              className="px-4 py-2.5 bg-white dark:bg-slate-900 border dark:text-white border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all min-w-[150px]"
               disabled={loading}
             >
               <option value="">{option.placeholder}</option>
@@ -144,7 +144,7 @@ const SearchAndFilter = ({
             if (!value || value === 'all' || value === '') return null;
             const option = filterOptions.find(opt => opt.key === key);
             const selectedOption = option?.options?.find(opt => opt.value === value);
-            
+
             return (
               <span key={key} className="inline-flex items-center gap-1 px-3 py-1 bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-full text-sm">
                 {option?.label}: {selectedOption?.label || value}
