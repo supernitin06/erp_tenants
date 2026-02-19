@@ -6,14 +6,14 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Get Students
         getStudents: builder.query({
             query: (tenantName) =>
-                `/tenant/${tenantName}/students/list`,
+                `/tenant/${tenantName}/students`,
             providesTags: ['Students'],
         }),
 
         // ✅ Get Student Details
         getStudentDetails: builder.query({
             query: ({ tenantName, id }) =>
-                `/tenant/${tenantName}/students/details/${id}`,
+                `/tenant/${tenantName}/students/${id}`,
             providesTags: ['Students'],
         }),
 
@@ -27,9 +27,30 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Create Student
         createStudent: builder.mutation({
             query: ({ tenantName, data }) => ({
-                url: `/tenant/${tenantName}/students/create`,
+                url: `/tenant/${tenantName}/students`,
                 method: 'POST',
-                body: data,
+                body: {
+                    // Basic Information (matching API response structure)
+                    studentId: data.studentId?.trim(),
+                    firstName: data.firstName?.trim(),
+                    lastName: data.lastName?.trim(),
+                    
+                    // Contact Information
+                    email: data.email?.trim().toLowerCase(),
+                    phone: data.phone?.trim(),
+                    
+                    // Academic Information
+                    classId: data.classId?.trim() || null,
+                    
+                    // Personal Information
+                    gender: data.gender?.trim(),
+                    dateOfBirth: data.dateOfBirth,
+                    address: data.address?.trim() || '',
+                    
+                    // Parent/Guardian Information
+                    parentName: data.parentName?.trim() || '',
+                    parentPhone: data.parentPhone?.trim() || '',
+                },
             }),
             invalidatesTags: ['Students'],
         }),
@@ -37,9 +58,30 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Update Student
         updateStudent: builder.mutation({
             query: ({ tenantName, id, data }) => ({
-                url: `/tenant/${tenantName}/students/update/${id}`,
+                url: `/tenant/${tenantName}/students/${id}`,
                 method: 'PUT',
-                body: data,
+                body: {
+                    // Basic Information (matching API response structure)
+                    studentId: data.studentId?.trim(),
+                    firstName: data.firstName?.trim(),
+                    lastName: data.lastName?.trim(),
+                    
+                    // Contact Information
+                    email: data.email?.trim().toLowerCase(),
+                    phone: data.phone?.trim(),
+                    
+                    // Academic Information
+                    classId: data.classId?.trim() || null,
+                    
+                    // Personal Information
+                    gender: data.gender?.trim(),
+                    dateOfBirth: data.dateOfBirth,
+                    address: data.address?.trim() || '',
+                    
+                    // Parent/Guardian Information
+                    parentName: data.parentName?.trim() || '',
+                    parentPhone: data.parentPhone?.trim() || '',
+                },
             }),
             invalidatesTags: ['Students'],
         }),
@@ -47,7 +89,7 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Delete Student
         deleteStudent: builder.mutation({
             query: ({ tenantName, id }) => ({
-                url: `/tenant/${tenantName}/students/delete/${id}`,
+                url: `/tenant/${tenantName}/students/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Students'],
