@@ -17,6 +17,13 @@ export const studentApi = apiSlice.injectEndpoints({
             providesTags: ['Students'],
         }),
 
+        // ✅ Get Classes (for filtering)
+        getClasses: builder.query({
+            query: (tenantName) =>
+                `/tenant/${tenantName}/classes`,
+            providesTags: ['Class'],
+        }),
+
         // ✅ Create Student
         createStudent: builder.mutation({
             query: ({ tenantName, data }) => ({
@@ -52,6 +59,7 @@ export const studentApi = apiSlice.injectEndpoints({
 export const {
     useGetStudentsQuery,
     useGetStudentDetailsQuery,
+    useGetClassesQuery,
     useCreateStudentMutation,
     useUpdateStudentMutation,
     useDeleteStudentMutation,

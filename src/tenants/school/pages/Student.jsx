@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     useGetStudentsQuery,
+    useGetStudentDetailsQuery,
+    useGetClassesQuery,
     useCreateStudentMutation,
     useUpdateStudentMutation,
     useDeleteStudentMutation,
@@ -9,7 +11,6 @@ import {
 import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
 import StatsCard from '../../../common/components/ui/StatsCard';
-import SearchBar from '../../../common/components/ui/SearchBar';
 
 import { 
     PlusIcon, 
@@ -22,7 +23,8 @@ import {
     EnvelopeIcon,
     PhoneIcon,
     CalendarIcon,
-    MapPinIcon
+    MapPinIcon,
+    MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 const Student = () => {
@@ -31,6 +33,7 @@ const Student = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterGender, setFilterGender] = useState('all');
+    const [filterClass, setFilterClass] = useState('all');
 
     const [formData, setFormData] = useState({
         studentId: '',
@@ -48,6 +51,7 @@ const Student = () => {
     });
 
     const { data: studentsData, isLoading, error, refetch } = useGetStudentsQuery(tenantName);
+    const { data: classesData, isLoading: classesLoading } = useGetClassesQuery(tenantName);
     const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
     const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
     const [deleteStudent] = useDeleteStudentMutation();
@@ -56,8 +60,9 @@ const Student = () => {
     useEffect(() => {
         console.log("Student Page - Tenant:", tenantName);
         console.log("Student Page - Data:", studentsData);
+        console.log("Student Page - Classes Data:", classesData);
         console.log("Student Page - Error:", error);
-    }, [tenantName, studentsData, error]);
+    }, [tenantName, studentsData, classesData, error]);
 
     const students = useMemo(() => {
         if (!studentsData) return [];
@@ -69,6 +74,18 @@ const Student = () => {
         // Ensure we only return valid objects
         return data.filter(item => item && typeof item === 'object');
     }, [studentsData]);
+
+    // Transform classes data to handle different API response formats
+    const classes = useMemo(() => {
+        if (!classesData) return [];
+        let data = [];
+        if (Array.isArray(classesData)) data = classesData;
+        else if (Array.isArray(classesData.classes)) data = classesData.classes;
+        else if (Array.isArray(classesData.data)) data = classesData.data;
+        
+        // Ensure we only return valid objects with required fields
+        return data.filter(item => item && typeof item === 'object' && (item.id || item._id));
+    }, [classesData]);
 
     const studentColumns = useMemo(() => [
         { key: 'studentId', header: 'Student ID', isPrimary: true, className: 'font-bold text-cyan-600 dark:text-cyan-400 whitespace-nowrap', render: item => `#${item.studentId}` },
@@ -101,7 +118,7 @@ const Student = () => {
         parentPhone: { label: 'Parent Phone', type: 'tel', icon: PhoneIcon, tab: 'contact' },
     };
 
-    // Filter students based on search and gender
+    // Filter students based on search, gender, and class
     const filteredStudents = useMemo(() => {
         return students.filter(student => {
             const matchesSearch = searchTerm === '' || 
@@ -111,10 +128,11 @@ const Student = () => {
                 student.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
             
             const matchesGender = filterGender === 'all' || student.gender?.toLowerCase() === filterGender;
+            const matchesClass = filterClass === 'all' || student.classId === filterClass;
             
-            return matchesSearch && matchesGender;
+            return matchesSearch && matchesGender && matchesClass;
         });
-    }, [students, searchTerm, filterGender]);
+    }, [students, searchTerm, filterGender, filterClass]);
 
     const totalStudents = useMemo(() => (studentsData?.count || students.length || 0), [studentsData, students]);
     
@@ -180,16 +198,6 @@ const Student = () => {
             alert(err?.data?.message || 'Something went wrong');
         }
     };
-
-    const handleSearch = (term, filters) => {
-        setSearchTerm(term);
-        if (filters.gender) {
-            setFilterGender(filters.gender);
-        } else {
-            setFilterGender('all');
-        }
-    };
-
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -265,24 +273,47 @@ const Student = () => {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <SearchBar
-                    onSearch={handleSearch}
-                    placeholder="Search students by name, email, or ID..."
-                    filters={[
-                        {
-                            key: 'gender',
-                            label: 'Gender',
-                            type: 'select',
-                            options: [
-                                { value: 'all', label: 'All Genders' },
-                                { value: 'male', label: 'Male' },
-                                { value: 'female', label: 'Female' },
-                                { value: 'other', label: 'Other' }
-                            ]
-                        }
-                    ]}
-                    initialFilters={{ gender: 'all' }}
-                />
+                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700 p-4 shadow-lg">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1 relative">
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Search students by name, email, or ID..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <select
+                                value={filterClass}
+                                onChange={(e) => setFilterClass(e.target.value)}
+                                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
+                                disabled={classesLoading}
+                            >
+                                <option value="all">
+                                    {classesLoading ? 'Loading classes...' : 'All Classes'}
+                                </option>
+                                {classes.map(cls => (
+                                    <option key={cls.id || cls._id} value={cls.id || cls._id}>
+                                        {cls.name || cls.className} - {cls.section || 'N/A'}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={filterGender}
+                                onChange={(e) => setFilterGender(e.target.value)}
+                                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
+                            >
+                                <option value="all">All Genders</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Error Message with Enhanced Design */}
                 {error && (
@@ -317,15 +348,16 @@ const Student = () => {
                             </div>
                             <p className="font-medium text-xl text-slate-900 dark:text-white mb-2">No students found</p>
                             <p className="text-sm opacity-60 max-w-md">
-                                {searchTerm || filterGender !== 'all' 
+                                {searchTerm || filterGender !== 'all' || filterClass !== 'all'
                                     ? 'Try adjusting your search or filter criteria'
                                     : 'Get started by adding your first student to the system'}
                             </p>
-                            {(searchTerm || filterGender !== 'all') && (
+                            {(searchTerm || filterGender !== 'all' || filterClass !== 'all') && (
                                 <button
                                     onClick={() => {
                                         setSearchTerm('');
                                         setFilterGender('all');
+                                        setFilterClass('all');
                                     }}
                                     className="mt-4 px-4 py-2 text-sm bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-lg hover:bg-cyan-100 dark:hover:bg-cyan-500/20 transition-colors"
                                 >
