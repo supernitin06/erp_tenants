@@ -1,6 +1,6 @@
 
 // components/BeautifulForm.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   XMarkIcon,
   UserIcon,
@@ -28,7 +28,7 @@ const Form = ({
   fields,
   title
 }) => {
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState('student');
   const [imagePreview, setImagePreview] = useState(null);
 
 
@@ -152,13 +152,52 @@ const Form = ({
       .replace(/^./, str => str.toUpperCase());
   };
 
-  const tabs = [
-    { id: 'basic', name: 'Basic Info', icon: UserIcon },
-    { id: 'personal', name: 'Personal', icon: IdentificationIcon },
-    { id: 'contact', name: 'Contact', icon: EnvelopeIcon },
-    { id: 'location', name: 'Location', icon: MapPinIcon },
-    { id: 'professional', name: 'Professional', icon: BriefcaseIcon },
-  ];
+  const tabs = useMemo(() => {
+    const uniqueTabs = new Set();
+    Object.values(fieldConfig).forEach(config => {
+      if (config.tab) {
+        uniqueTabs.add(config.tab);
+      }
+    });
+    
+    // Convert to array and add default icons
+    const tabArray = Array.from(uniqueTabs).map(tabId => {
+      const iconMap = {
+        student: UserIcon,
+        basic: UserIcon,
+        personal: IdentificationIcon,
+        contact: EnvelopeIcon,
+        location: MapPinIcon,
+        professional: BriefcaseIcon,
+        academic: AcademicCapIcon,
+      };
+      
+      const nameMap = {
+        student: 'Student Information',
+        basic: 'Basic Info',
+        personal: 'Personal',
+        contact: 'Contact',
+        location: 'Location',
+        professional: 'Professional',
+        academic: 'Academic',
+      };
+      
+      return {
+        id: tabId,
+        name: nameMap[tabId] || tabId.charAt(0).toUpperCase() + tabId.slice(1),
+        icon: iconMap[tabId] || UserIcon
+      };
+    });
+    
+    // If no tabs found, default to student tab
+    return tabArray.length > 0 ? tabArray : [{ id: 'student', name: 'Information', icon: UserIcon }];
+  }, [fieldConfig]);
+
+  useEffect(() => {
+    if (tabs.length > 0 && !tabs.find(tab => tab.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [tabs, activeTab]);
 
   const renderField = (key) => {
     const config = fieldConfig[key];
@@ -169,21 +208,19 @@ const Form = ({
     if (key === 'gender') {
       return (
         <div className="space-y-2">
-          <div className="flex items-center space-x-4">
-            {['Male', 'Female', 'Other'].map((option) => (
-              <label key={option} className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name={key}
-                  value={option}
-                  checked={formData[key] === option}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-cyan-600 bg-slate-100 border-slate-300 focus:ring-cyan-500 dark:focus:ring-cyan-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
-                />
-                <span className="text-sm text-slate-700 dark:text-slate-300">{option}</span>
-              </label>
+          <select
+            name={key}
+            value={formData[key] || ''}
+            onChange={handleChange}
+            className={`${inputStyle}`}
+          >
+            <option value="">Select Gender</option>
+            {config.options?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
       );
     }
