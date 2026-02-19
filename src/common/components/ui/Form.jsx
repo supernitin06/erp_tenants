@@ -16,15 +16,15 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Form = ({
-  isOpen,
-  formData,
-  setFormData,
-  onClose,
-  onSubmit,
-  initialData,
-  isLoading,
-  title = "Item",
-  fields = null // Optional: custom field configuration
+    isOpen,
+    formData,
+    setFormData,
+    onClose,
+    onSubmit,
+    initialData,
+    isLoading,
+    type = "student",
+    classes = []
 }) => {
   const [activeTab, setActiveTab] = useState('basic');
   const [imagePreview, setImagePreview] = useState(null);
@@ -52,13 +52,73 @@ const Form = ({
     }
   }, [initialData, isOpen]);
 
-  const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    
-    if (type === 'file' && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
+    // useEffect(() => {
+    //     if (initialData) {
+    //         setFormData({
+    //             ...initialData,
+    //             dateOfBirth: initialData.dateOfBirth
+    //                 ? initialData.dateOfBirth.split('T')[0]
+    //                 : '',
+    //         });
+    //     } else {
+    //         const emptyData = Object.keys(formData).reduce((acc, key) => {
+    //             acc[key] = '';
+    //             return acc;
+    //         }, {});
+    //         setFormData(emptyData);
+    //     }
+    // }, [initialData, isOpen]);
+
+
+    useEffect(() => {
+        if (initialData) {
+            if (type === "student") {
+                setFormData({
+                    ...initialData,
+                    dateOfBirth: initialData.dateOfBirth
+                        ? initialData.dateOfBirth.split('T')[0]
+                        : '',
+                });
+            } else if (type === "exam") {
+                setFormData({
+                    name: initialData.name || '',
+                    examType: initialData.examType || '',
+                    academicYear: initialData.academicYear || '',
+                    term: initialData.term || '',
+                    startDate: initialData.startDate?.split('T')[0] || '',
+                    endDate: initialData.endDate?.split('T')[0] || '',
+                    description: initialData.description || '',
+                    classId: initialData.classId || ''
+                });
+            } else if (type === "exam schedule") {
+                setFormData({
+                    subject: initialData.subject || '',
+                    examDate: initialData.examDate?.split('T')[0] || '',
+                    startTime: initialData.startTime || '',
+                    endTime: initialData.endTime || '',
+                    className: initialData.className || '',
+                    roomNumber: initialData.roomNumber || '',
+                });
+            } else if (type === "class") {
+                setFormData({
+                    name: initialData.name || '',
+                    section: initialData.section || '',
+                    academicYear: initialData.academicYear || '',
+                    description: initialData.description || '',
+                });
+            } else {
+                setFormData(initialData); // default fallback
+            }
+        } else {
+            setFormData(Object.keys(formData).reduce((acc, key) => {
+                acc[key] = '';
+                return acc;
+            }, {}));
+        }
+    }, [initialData, isOpen]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
         setFormData(prev => ({
           ...prev,
           [name]: reader.result
@@ -208,23 +268,8 @@ const Form = ({
     }
 
     return (
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
-        </div>
-        <input
-          type={config.type || "text"}
-          name={key}
-          value={formData[key] || ''}
-          onChange={handleChange}
-          className={`${inputStyle} pl-10`}
-          placeholder={`Enter ${formatLabel(key)}`}
-        />
-      </div>
-    );
-  };
 
-  return (
+    
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
       
       {/* Modal Container */}

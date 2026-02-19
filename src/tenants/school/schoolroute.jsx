@@ -11,6 +11,7 @@ import SalaryManagement from './pages/SalaryManagement';
 import FeeManagement from './pages/FeeManagement';
 
 import ExamManagement from './pages/ExamManagement.jsx';
+import ExamSchedule from './pages/ExamShedule.jsx';
 const schoolRoutes = [
     {
         path: 'student',
@@ -33,6 +34,10 @@ const schoolRoutes = [
         element: <ExamManagement />,
     },
     {
+        path: 'exam-schedule/:classId/:examId',
+        element: <ExamSchedule />,
+    },
+    {
         path: 'exam-result',
         element: <ExamResult />,
     },
@@ -53,7 +58,7 @@ const schoolRoutes = [
         path: 'fee-manageemnt',
         element: <FeeManagement />,
     },
-   
+
     // {
     //     path: 'doctor-appointment',
     //     element: <DoctorAppointment />,
@@ -74,7 +79,7 @@ const schoolRoutes = [
     //     path: 'student-attendance',
     //     element: <StudentAttendance />,
     // }
-    
+
 ];
 
 export default schoolRoutes;
