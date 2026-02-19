@@ -11,6 +11,7 @@ import {
 import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
 import StatsCard from '../../../common/components/ui/StatsCard';
+import SearchAndFilter from '../../../common/components/ui/SearchAndFilter';
 
 import { 
     PlusIcon, 
@@ -32,8 +33,10 @@ const Student = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterGender, setFilterGender] = useState('all');
-    const [filterClass, setFilterClass] = useState('all');
+    const [filters, setFilters] = useState({
+        gender: 'all',
+        class: 'all'
+    });
 
     const [formData, setFormData] = useState({
         studentId: '',
@@ -41,7 +44,6 @@ const Student = () => {
         lastName: '',
         email: '',
         classId: '',
-        sectionId: '',
         phone: '',
         gender: '',
         dateOfBirth: '',
@@ -104,19 +106,58 @@ const Student = () => {
     ], []);
 
     const studentFields = {
-        firstName: { label: 'First Name', type: 'text', icon: UsersIcon, tab: 'basic' },
-        lastName: { label: 'Last Name', type: 'text', icon: UsersIcon, tab: 'basic' },
-        studentId: { label: 'Student ID', type: 'text', icon: IdentificationIcon, tab: 'basic' },
-        email: { label: 'Email', type: 'email', icon: EnvelopeIcon, tab: 'contact' },
-        phone: { label: 'Phone', type: 'tel', icon: PhoneIcon, tab: 'contact' },
-        gender: { label: 'Gender', type: 'select', icon: UsersIcon, tab: 'personal' },
-        dateOfBirth: { label: 'Date of Birth', type: 'date', icon: CalendarIcon, tab: 'personal' },
-        address: { label: 'Address', type: 'textarea', icon: MapPinIcon, tab: 'location' },
-        classId: { label: 'Class', type: 'text', icon: AcademicCapIcon, tab: 'professional' },
-        sectionId: { label: 'Section', type: 'text', icon: UserGroupIcon, tab: 'professional' },
-        parentName: { label: 'Parent Name', type: 'text', icon: UsersIcon, tab: 'contact' },
-        parentPhone: { label: 'Parent Phone', type: 'tel', icon: PhoneIcon, tab: 'contact' },
+        firstName: { label: 'First Name', type: 'text', icon: UsersIcon, tab: 'student', required: true },
+        lastName: { label: 'Last Name', type: 'text', icon: UsersIcon, tab: 'student', required: true },
+        studentId: { label: 'Student ID', type: 'text', icon: IdentificationIcon, tab: 'student', required: true },
+        email: { label: 'Email', type: 'email', icon: EnvelopeIcon, tab: 'student', placeholder: 'student@example.com' },
+        phone: { label: 'Phone', type: 'tel', icon: PhoneIcon, tab: 'student', placeholder: '+1 (555) 123-4567' },
+        gender: { 
+            label: 'Gender', 
+            type: 'select', 
+            icon: UsersIcon, 
+            tab: 'student',
+            options: [
+                { value: '', label: 'Select Gender' },
+                { value: 'MALE', label: 'Male' },
+                { value: 'FEMALE', label: 'Female' },
+                { value: 'OTHER', label: 'Other' }
+            ]
+        },
+        dateOfBirth: { label: 'Date of Birth', type: 'date', icon: CalendarIcon, tab: 'student' },
+        address: { label: 'Address', type: 'textarea', icon: MapPinIcon, tab: 'student', rows: 3 },
+        classId: { label: 'Class', type: 'text', icon: AcademicCapIcon, tab: 'student', placeholder: 'e.g., 10th Grade' },
+        parentName: { label: 'Parent Name', type: 'text', icon: UsersIcon, tab: 'student', placeholder: 'Parent/Guardian full name' },
+        parentPhone: { label: 'Parent Phone', type: 'tel', icon: PhoneIcon, tab: 'student', placeholder: '+1 (555) 987-6543' },
     };
+
+    // Filter options configuration
+    const filterOptions = [
+        {
+            key: 'gender',
+            label: 'Gender',
+            placeholder: 'All Genders',
+            defaultValue: 'all',
+            options: [
+                { value: 'all', label: 'All Genders' },
+                { value: 'male', label: 'Male' },
+                { value: 'female', label: 'Female' },
+                { value: 'other', label: 'Other' }
+            ]
+        },
+        {
+            key: 'class',
+            label: 'Class',
+            placeholder: 'All Classes',
+            defaultValue: 'all',
+            options: [
+                { value: 'all', label: 'All Classes' },
+                ...classes.map(cls => ({
+                    value: cls.id || cls._id,
+                    label: `${cls.name || cls.className} - ${cls.section || 'N/A'}`
+                }))
+            ]
+        }
+    ];
 
     // Filter students based on search, gender, and class
     const filteredStudents = useMemo(() => {
@@ -127,12 +168,12 @@ const Student = () => {
                 student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
             
-            const matchesGender = filterGender === 'all' || student.gender?.toLowerCase() === filterGender;
-            const matchesClass = filterClass === 'all' || student.classId === filterClass;
+            const matchesGender = filters.gender === 'all' || student.gender?.toLowerCase() === filters.gender.toLowerCase();
+            const matchesClass = filters.class === 'all' || student.classId === filters.class;
             
             return matchesSearch && matchesGender && matchesClass;
         });
-    }, [students, searchTerm, filterGender, filterClass]);
+    }, [students, searchTerm, filters]);
 
     const totalStudents = useMemo(() => (studentsData?.count || students.length || 0), [studentsData, students]);
     
@@ -153,7 +194,6 @@ const Student = () => {
             lastName: '',
             email: '',
             classId: '',
-            sectionId: '',
             phone: '',
             gender: '',
             dateOfBirth: '',
@@ -181,21 +221,60 @@ const Student = () => {
 
     const handleSubmit = async (formData) => {
         try {
+            // Validate required fields
+            const requiredFields = ['firstName', 'lastName', 'studentId'];
+            const missingFields = requiredFields.filter(field => !formData[field]?.trim());
+            
+            if (missingFields.length > 0) {
+                alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
+                return;
+            }
+            
+            // Validate email format if provided
+            if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            // Validate phone format if provided (basic validation)
+            if (formData.phone && !/^[+]?[\d\s\-\(\)]+$/.test(formData.phone)) {
+                alert('Please enter a valid phone number');
+                return;
+            }
+            
+            // Prepare request body
+            const requestBody = {
+                // Ensure required fields are properly formatted
+                studentId: formData.studentId.trim(),
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
+                // Optional fields - trim if present, otherwise leave as empty string
+                email: formData.email?.trim().toLowerCase() || '',
+                phone: formData.phone?.trim() || '',
+                classId: formData.classId?.trim() || null,
+                gender: formData.gender?.trim() || '',
+                dateOfBirth: formData.dateOfBirth || '',
+                address: formData.address?.trim() || '',
+                parentName: formData.parentName?.trim() || '',
+                parentPhone: formData.parentPhone?.trim() || '',
+            };
+            
             if (selectedStudent) {
                 await updateStudent({
                     tenantName,
                     id: selectedStudent.id,
-                    data: formData
+                    data: requestBody
                 }).unwrap();
             } else {
                 await createStudent({
                     tenantName,
-                    data: formData
+                    data: requestBody
                 }).unwrap();
             }
             setIsModalOpen(false);
         } catch (err) {
-            alert(err?.data?.message || 'Something went wrong');
+            console.error('Student submission error:', err);
+            alert(err?.data?.message || 'Something went wrong while saving the student');
         }
     };
 
@@ -273,47 +352,15 @@ const Student = () => {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-slate-700 p-4 shadow-lg">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Search students by name, email, or ID..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <select
-                                value={filterClass}
-                                onChange={(e) => setFilterClass(e.target.value)}
-                                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
-                                disabled={classesLoading}
-                            >
-                                <option value="all">
-                                    {classesLoading ? 'Loading classes...' : 'All Classes'}
-                                </option>
-                                {classes.map(cls => (
-                                    <option key={cls.id || cls._id} value={cls.id || cls._id}>
-                                        {cls.name || cls.className} - {cls.section || 'N/A'}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                value={filterGender}
-                                onChange={(e) => setFilterGender(e.target.value)}
-                                className="px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all"
-                            >
-                                <option value="all">All Genders</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <SearchAndFilter
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    filters={filters}
+                    setFilters={setFilters}
+                    filterOptions={filterOptions}
+                    placeholder="Search students by name, email, or ID..."
+                    loading={classesLoading}
+                />
 
                 {/* Error Message with Enhanced Design */}
                 {error && (
@@ -348,16 +395,18 @@ const Student = () => {
                             </div>
                             <p className="font-medium text-xl text-slate-900 dark:text-white mb-2">No students found</p>
                             <p className="text-sm opacity-60 max-w-md">
-                                {searchTerm || filterGender !== 'all' || filterClass !== 'all'
+                                {searchTerm || filters.gender !== 'all' || filters.class !== 'all'
                                     ? 'Try adjusting your search or filter criteria'
                                     : 'Get started by adding your first student to the system'}
                             </p>
-                            {(searchTerm || filterGender !== 'all' || filterClass !== 'all') && (
+                            {(searchTerm || filters.gender !== 'all' || filters.class !== 'all') && (
                                 <button
                                     onClick={() => {
                                         setSearchTerm('');
-                                        setFilterGender('all');
-                                        setFilterClass('all');
+                                        setFilters({
+                                            gender: 'all',
+                                            class: 'all'
+                                        });
                                     }}
                                     className="mt-4 px-4 py-2 text-sm bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-lg hover:bg-cyan-100 dark:hover:bg-cyan-500/20 transition-colors"
                                 >
