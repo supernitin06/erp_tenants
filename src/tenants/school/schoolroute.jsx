@@ -2,7 +2,6 @@ import React from 'react';
 import TeacherManagement from './pages/Teacher';
 import Student from './pages/Student';
 import Library from './pages/Library';
-import RoomManagement from './pages/RoomManagement';
 import ExamDatesheet from './pages/ExamDatesheet';
 import ExamResult from './pages/ExamResult';
 import LibraryBooks from './pages/LibraryBooks';
@@ -34,7 +33,7 @@ const schoolRoutes = [
         element: <ExamManagement />,
     },
     {
-        path: 'exam-schedule/:classId/:examId',
+        path: 'exam-schedule',
         element: <ExamSchedule />,
     },
     {
@@ -42,7 +41,7 @@ const schoolRoutes = [
         element: <ExamResult />,
     },
     {
-       
+
         path: 'library-books-management',
         element: <LibraryBooks />,
     },
@@ -51,34 +50,14 @@ const schoolRoutes = [
         element: <ClassManagement />,
     },
     {
-        path: 'salary-manageement',
+        path: 'salary-management',
         element: <SalaryManagement />,
     },
     {
-        path: 'fee-manageemnt',
+        path: 'fee-management',
         element: <FeeManagement />,
     },
 
-    // {
-    //     path: 'doctor-appointment',
-    //     element: <DoctorAppointment />,
-    // },
-    // {
-    //     path: 'doctor-management',
-    //     element: <DoctorManagement />,
-    // },
-    // {
-    //     path: 'lab-management',
-    //     element: <LabManagement />,
-    // },
-    // {
-    //     path: 'teacher-attendance',
-    //     element: <TeacherAttendance />,
-    // },
-    // {
-    //     path: 'student-attendance',
-    //     element: <StudentAttendance />,
-    // }
 
 ];
 

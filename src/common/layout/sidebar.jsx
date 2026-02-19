@@ -39,15 +39,17 @@ const Sidebar = ({ closeSidebar }) => {
     }, [user, tenantName, navigate]);
 
     const toggleDomain = (domainId) => {
-        setExpandedDomains(prev => ({
-            ...prev,
-            [domainId]: !prev[domainId]
-        }));
+        setExpandedDomains(prev => {
+            const isCurrentlyOpen = !!prev[domainId];
+            // If currently open, close it (return empty object or just remove this key).
+            // If currently closed, return new object with ONLY this domainId set to true.
+            return isCurrentlyOpen ? {} : { [domainId]: true };
+        });
     };
 
     const getDomainIcon = (domainName) => {
         const name = domainName?.toUpperCase();
-        
+
         // Modern icon mapping with gradients
         const iconMap = [
             { pattern: 'ACADEMIC', icon: AcademicCapIcon, gradient: 'from-emerald-500 to-teal-500' },
@@ -72,7 +74,7 @@ const Sidebar = ({ closeSidebar }) => {
                 return { Icon: item.icon, gradient: item.gradient };
             }
         }
-        
+
         return { Icon: Squares2X2Icon, gradient: 'from-slate-500 to-slate-600' };
     };
 
@@ -88,8 +90,8 @@ const Sidebar = ({ closeSidebar }) => {
         if (name.includes('BOOK') && name.includes('MANAGEMENT')) return 'library-books-management';
         if (name.includes('LIBRARY')) return 'library';
         if (name.includes('CLASS')) return 'class-management';
-        if (name.includes('SALARY')) return 'salary-manageement';
-        if (name.includes('FEE')) return 'fee-manageemnt';
+        if (name.includes('SALARY')) return 'salary-management';
+        if (name.includes('FEE')) return 'fee-management';
         if (name.includes('PATIENT')) return 'patient-management';
         if (name.includes('DOCTOR') && name.includes('APPOINTMENT')) return 'doctor-appointment';
         if (name.includes('DOCTOR')) return 'doctor-management';
@@ -100,13 +102,13 @@ const Sidebar = ({ closeSidebar }) => {
 
     return (
         <div className="w-80 h-full bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col overflow-y-auto transition-all duration-300 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30">
-            
+
             {/* Sidebar Header with Decorative Elements */}
             <div className="relative p-6 border-b border-slate-200/80 dark:border-slate-800/80">
                 {/* Decorative gradient orbs */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-500/5 dark:to-purple-500/5 rounded-full blur-2xl -z-0"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-400/10 to-cyan-400/10 dark:from-emerald-500/5 dark:to-cyan-500/5 rounded-full blur-xl -z-0"></div>
-                
+
                 <div className="flex justify-between items-center relative z-10">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -116,7 +118,7 @@ const Sidebar = ({ closeSidebar }) => {
                             {tenantName || 'ERP System'}
                         </h2>
                     </div>
-                    
+
                     <button
                         onClick={closeSidebar}
                         className="md:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200"
@@ -145,19 +147,19 @@ const Sidebar = ({ closeSidebar }) => {
                         absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 
                         transition-opacity duration-300 ${({ isActive }) => isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
                     `}></div>
-                    
+
                     {/* Active indicator */}
                     {({ isActive }) => isActive && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full"></div>
                     )}
-                    
+
                     <Squares2X2Icon className={`
                         w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
                         ${({ isActive }) => isActive ? 'text-blue-500' : ''}
                     `} />
-                    
+
                     <span className="font-medium relative z-10">Dashboard</span>
-                    
+
                     {/* Sparkle effect on hover */}
                     <SparklesIcon className="absolute right-3 w-4 h-4 text-blue-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </NavLink>
@@ -174,7 +176,7 @@ const Sidebar = ({ closeSidebar }) => {
                     const { Icon, gradient } = getDomainIcon(domain.domain_name);
                     const isExpanded = expandedDomains[domain.domainId];
                     const isHovered = hoveredDomain === domain.domainId;
-                    
+
                     return (
                         <div key={domain.domainId} className="flex flex-col gap-1">
                             <button
@@ -183,8 +185,8 @@ const Sidebar = ({ closeSidebar }) => {
                                 onMouseLeave={() => setHoveredDomain(null)}
                                 className={`
                                     group relative flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 w-full text-left overflow-hidden
-                                    ${isExpanded 
-                                        ? 'text-slate-900 dark:text-white bg-slate-100/80 dark:bg-slate-800/50 backdrop-blur-sm' 
+                                    ${isExpanded
+                                        ? 'text-slate-900 dark:text-white bg-slate-100/80 dark:bg-slate-800/50 backdrop-blur-sm'
                                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                                     }
                                 `}
@@ -194,10 +196,10 @@ const Sidebar = ({ closeSidebar }) => {
                                     absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 transition-opacity duration-300
                                     ${isExpanded ? 'opacity-5' : 'group-hover:opacity-5'}
                                 `}></div>
-                                
+
                                 {/* Glass morphism effect */}
                                 <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                
+
                                 <div className="flex items-center gap-3 relative z-10">
                                     <div className={`
                                         relative p-1.5 rounded-lg bg-gradient-to-br ${gradient} 
@@ -208,14 +210,14 @@ const Sidebar = ({ closeSidebar }) => {
                                     </div>
                                     <span className="font-medium">{domain.domain_name}</span>
                                 </div>
-                                
+
                                 {domain.features?.length > 0 && (
                                     <div className={`
                                         relative z-10 p-1 rounded-lg transition-all duration-300
                                         ${isExpanded ? 'bg-slate-200 dark:bg-slate-700' : 'group-hover:bg-slate-200 dark:group-hover:bg-slate-700'}
                                     `}>
-                                        {isExpanded ? 
-                                            <ChevronDownIcon className="w-4 h-4 text-slate-600 dark:text-slate-400" /> : 
+                                        {isExpanded ?
+                                            <ChevronDownIcon className="w-4 h-4 text-slate-600 dark:text-slate-400" /> :
                                             <ChevronRightIcon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                                         }
                                     </div>
@@ -226,7 +228,7 @@ const Sidebar = ({ closeSidebar }) => {
                                 <div className="flex flex-col gap-1 pl-4 ml-4 mt-1 relative">
                                     {/* Vertical line connector */}
                                     <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-700 to-transparent"></div>
-                                    
+
                                     {domain.features.map((feature, featureIndex) => (
                                         <NavLink
                                             key={feature.featureId}
@@ -245,28 +247,28 @@ const Sidebar = ({ closeSidebar }) => {
                                                 absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 
                                                 transition-opacity duration-300 ${({ isActive }) => isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
                                             `}></div>
-                                            
+
                                             {/* Active/Connection dot */}
                                             <div className="relative">
                                                 <div className={`
                                                     w-1.5 h-1.5 rounded-full transition-all duration-300
-                                                    ${({ isActive }) => 
-                                                        isActive 
-                                                            ? 'bg-blue-500 scale-125' 
+                                                    ${({ isActive }) =>
+                                                        isActive
+                                                            ? 'bg-blue-500 scale-125'
                                                             : 'bg-slate-400 dark:bg-slate-600 group-hover:bg-slate-600 dark:group-hover:bg-slate-400'
                                                     }
                                                 `} />
-                                                
+
                                                 {/* Connecting line to main domain */}
                                                 {featureIndex === 0 && (
                                                     <div className="absolute top-0 left-0.5 -translate-y-full h-3 w-px bg-gradient-to-b from-slate-300 dark:from-slate-700 to-transparent"></div>
                                                 )}
                                             </div>
-                                            
+
                                             <span className="font-medium text-sm relative z-10 truncate">
                                                 {feature.feature_name}
                                             </span>
-                                            
+
                                             {/* Subtle hover arrow */}
                                             <ChevronRightIcon className="absolute right-2 w-3 h-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                                         </NavLink>
@@ -282,7 +284,7 @@ const Sidebar = ({ closeSidebar }) => {
             <div className="relative p-4 border-t border-slate-200/80 dark:border-slate-800/80">
                 {/* Decorative gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent"></div>
-                
+
                 <button className="
                     group relative flex items-center gap-3 px-4 py-3 w-full rounded-xl 
                     text-slate-600 dark:text-slate-400 
@@ -291,17 +293,17 @@ const Sidebar = ({ closeSidebar }) => {
                 ">
                     {/* Animated background */}
                     <div className="absolute inset-0 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
+
                     <Cog6ToothIcon className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-500" />
-                    
+
                     <span className="font-medium relative z-10">Settings</span>
-                    
+
                     {/* Shortcut hint */}
                     <span className="absolute right-3 text-xs text-slate-400 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-500 transition-colors">
                         ⌘,
                     </span>
                 </button>
-                
+
                 {/* Version info */}
                 <div className="mt-3 px-4 text-xs text-slate-400 dark:text-slate-600 flex items-center gap-2">
                     <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse"></div>

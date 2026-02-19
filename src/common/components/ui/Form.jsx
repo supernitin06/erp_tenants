@@ -1,11 +1,11 @@
 
 // components/BeautifulForm.jsx
 import React, { useEffect, useState } from 'react';
-import { 
-  XMarkIcon, 
-  UserIcon, 
-  EnvelopeIcon, 
-  PhoneIcon, 
+import {
+  XMarkIcon,
+  UserIcon,
+  EnvelopeIcon,
+  PhoneIcon,
   CalendarIcon,
   MapPinIcon,
   IdentificationIcon,
@@ -16,15 +16,17 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Form = ({
-    isOpen,
-    formData,
-    setFormData,
-    onClose,
-    onSubmit,
-    initialData,
-    isLoading,
-    type = "student",
-    classes = []
+  isOpen,
+  formData,
+  setFormData,
+  onClose,
+  onSubmit,
+  initialData,
+  isLoading,
+  type = "student",
+  classes = [],
+  fields,
+  title
 }) => {
   const [activeTab, setActiveTab] = useState('basic');
   const [imagePreview, setImagePreview] = useState(null);
@@ -37,7 +39,7 @@ const Form = ({
           ? initialData.dateOfBirth.split('T')[0]
           : '',
       });
-      
+
       const imageField = Object.keys(fields || {}).find(key => fields[key].type === 'image');
       if (imageField && initialData[imageField]) {
         setImagePreview(initialData[imageField]);
@@ -50,75 +52,80 @@ const Form = ({
       setFormData(emptyData);
       setImagePreview(null);
     }
+  }, [initialData, isOpen, fields]); // Added fields and setFormData to dep array implicitly by scope but good to be explicit if needed, though usually stable.
+
+  // useEffect(() => {
+  //     if (initialData) {
+  //         setFormData({
+  //             ...initialData,
+  //             dateOfBirth: initialData.dateOfBirth
+  //                 ? initialData.dateOfBirth.split('T')[0]
+  //                 : '',
+  //         });
+  //     } else {
+  //         const emptyData = Object.keys(formData).reduce((acc, key) => {
+  //             acc[key] = '';
+  //             return acc;
+  //         }, {});
+  //         setFormData(emptyData);
+  //     }
+  // }, [initialData, isOpen]);
+
+
+  useEffect(() => {
+    if (initialData) {
+      if (type === "student") {
+        setFormData({
+          ...initialData,
+          dateOfBirth: initialData.dateOfBirth
+            ? initialData.dateOfBirth.split('T')[0]
+            : '',
+        });
+      } else if (type === "exam") {
+        setFormData({
+          name: initialData.name || '',
+          examType: initialData.examType || '',
+          academicYear: initialData.academicYear || '',
+          term: initialData.term || '',
+          startDate: initialData.startDate?.split('T')[0] || '',
+          endDate: initialData.endDate?.split('T')[0] || '',
+          description: initialData.description || '',
+          classId: initialData.classId || ''
+        });
+      } else if (type === "exam schedule") {
+        setFormData({
+          subject: initialData.subject || '',
+          examDate: initialData.examDate?.split('T')[0] || '',
+          startTime: initialData.startTime || '',
+          endTime: initialData.endTime || '',
+          className: initialData.className || '',
+          roomNumber: initialData.roomNumber || '',
+        });
+      } else if (type === "class") {
+        setFormData({
+          name: initialData.name || '',
+          section: initialData.section || '',
+          academicYear: initialData.academicYear || '',
+          description: initialData.description || '',
+        });
+      } else {
+        setFormData(initialData); // default fallback
+      }
+    } else {
+      setFormData(Object.keys(formData).reduce((acc, key) => {
+        acc[key] = '';
+        return acc;
+      }, {}));
+    }
   }, [initialData, isOpen]);
 
-    // useEffect(() => {
-    //     if (initialData) {
-    //         setFormData({
-    //             ...initialData,
-    //             dateOfBirth: initialData.dateOfBirth
-    //                 ? initialData.dateOfBirth.split('T')[0]
-    //                 : '',
-    //         });
-    //     } else {
-    //         const emptyData = Object.keys(formData).reduce((acc, key) => {
-    //             acc[key] = '';
-    //             return acc;
-    //         }, {});
-    //         setFormData(emptyData);
-    //     }
-    // }, [initialData, isOpen]);
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
 
-
-    useEffect(() => {
-        if (initialData) {
-            if (type === "student") {
-                setFormData({
-                    ...initialData,
-                    dateOfBirth: initialData.dateOfBirth
-                        ? initialData.dateOfBirth.split('T')[0]
-                        : '',
-                });
-            } else if (type === "exam") {
-                setFormData({
-                    name: initialData.name || '',
-                    examType: initialData.examType || '',
-                    academicYear: initialData.academicYear || '',
-                    term: initialData.term || '',
-                    startDate: initialData.startDate?.split('T')[0] || '',
-                    endDate: initialData.endDate?.split('T')[0] || '',
-                    description: initialData.description || '',
-                    classId: initialData.classId || ''
-                });
-            } else if (type === "exam schedule") {
-                setFormData({
-                    subject: initialData.subject || '',
-                    examDate: initialData.examDate?.split('T')[0] || '',
-                    startTime: initialData.startTime || '',
-                    endTime: initialData.endTime || '',
-                    className: initialData.className || '',
-                    roomNumber: initialData.roomNumber || '',
-                });
-            } else if (type === "class") {
-                setFormData({
-                    name: initialData.name || '',
-                    section: initialData.section || '',
-                    academicYear: initialData.academicYear || '',
-                    description: initialData.description || '',
-                });
-            } else {
-                setFormData(initialData); // default fallback
-            }
-        } else {
-            setFormData(Object.keys(formData).reduce((acc, key) => {
-                acc[key] = '';
-                return acc;
-            }, {}));
-        }
-    }, [initialData, isOpen]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    if (files && files[0]) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
         setFormData(prev => ({
           ...prev,
           [name]: reader.result
@@ -235,9 +242,9 @@ const Form = ({
         <div className="flex items-center space-x-4">
           <div className="relative">
             {imagePreview ? (
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
+              <img
+                src={imagePreview}
+                alt="Preview"
                 className="w-20 h-20 rounded-lg object-cover border-4 border-cyan-500/30"
               />
             ) : (
@@ -245,8 +252,8 @@ const Form = ({
                 <CameraIcon className="h-8 w-8 text-white" />
               </div>
             )}
-            <label 
-              htmlFor={key} 
+            <label
+              htmlFor={key}
               className="absolute bottom-0 right-0 bg-cyan-600 p-1.5 rounded-full cursor-pointer hover:bg-cyan-700 transition-colors shadow-lg"
             >
               <CameraIcon className="h-4 w-4 text-white" />
@@ -268,13 +275,23 @@ const Form = ({
     }
 
     return (
+      <input
+        type={config.type || 'text'}
+        name={key}
+        value={formData[key] || ''}
+        onChange={handleChange}
+        className={inputStyle}
+        placeholder={`Enter ${formatLabel(key)}`}
+      />
+    );
+  };
 
-    
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-      
+
       {/* Modal Container */}
       <div className="w-full max-w-4xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-scaleIn">
-        
+
         {/* Header with Gradient */}
         <div className="relative bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-5">
           <div className="absolute inset-0 bg-black/10"></div>
@@ -324,7 +341,7 @@ const Form = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
-          
+
           {/* Progress Bar */}
           <div className="mb-6">
             <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
@@ -334,10 +351,10 @@ const Form = ({
               </span>
             </div>
             <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${(Object.values(formData).filter(v => v && v !== '').length / Object.keys(formData).length) * 100}%` 
+                style={{
+                  width: `${(Object.values(formData).filter(v => v && v !== '').length / Object.keys(formData).length) * 100}%`
                 }}
               />
             </div>
@@ -345,7 +362,7 @@ const Form = ({
 
           {/* Form Fields */}
           <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-            
+
             {/* Profile Image - Special Section */}
             {Object.keys(formData).some(key => fieldConfig[key]?.type === 'image') && (
               <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800/30 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
