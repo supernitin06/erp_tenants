@@ -1,19 +1,18 @@
-
 // components/BeautifulForm.jsx
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from "react";
 import {
   XMarkIcon,
   UserIcon,
   EnvelopeIcon,
   PhoneIcon,
-  CalendarIcon,
   MapPinIcon,
   IdentificationIcon,
   CakeIcon,
   GlobeAltIcon,
   BriefcaseIcon,
-  CameraIcon
-} from '@heroicons/react/24/outline';
+  CameraIcon,
+  AcademicCapIcon
+} from "@heroicons/react/24/outline";
 
 const Form = ({
   isOpen,
@@ -23,65 +22,91 @@ const Form = ({
   onSubmit,
   initialData,
   isLoading,
-  type = "student",
-  classes = [],
   fields,
   title
 }) => {
-  const [activeTab, setActiveTab] = useState('student');
+  const [activeTab, setActiveTab] = useState("basic");
   const [imagePreview, setImagePreview] = useState(null);
 
+  /* ===============================
+     DEFAULT FIELD CONFIG
+  =============================== */
+
+  const defaultFieldConfig = {
+    firstName: { icon: UserIcon, type: "text", label: "First Name", tab: "basic" },
+    lastName: { icon: UserIcon, type: "text", label: "Last Name", tab: "basic" },
+    email: { icon: EnvelopeIcon, type: "email", label: "Email", tab: "contact" },
+    phone: { icon: PhoneIcon, type: "tel", label: "Phone", tab: "contact" },
+    dateOfBirth: { icon: CakeIcon, type: "date", label: "Date of Birth", tab: "personal" },
+    gender: {
+      icon: IdentificationIcon,
+      type: "select",
+      label: "Gender",
+      tab: "personal",
+      options: [
+        { label: "Male", value: "male" },
+        { label: "Female", value: "female" },
+        { label: "Other", value: "other" }
+      ]
+    },
+    address: { icon: MapPinIcon, type: "textarea", label: "Address", tab: "location" },
+    city: { icon: MapPinIcon, type: "text", label: "City", tab: "location" },
+    country: { icon: GlobeAltIcon, type: "text", label: "Country", tab: "location" },
+    occupation: { icon: BriefcaseIcon, type: "text", label: "Occupation", tab: "professional" }
+  };
+
+  const fieldConfig = fields || defaultFieldConfig;
+
+  /* ===============================
+     INITIAL DATA
+  =============================== */
 
   useEffect(() => {
     if (initialData) {
-      if (type === "student") {
-        setFormData({
-          ...initialData,
-          dateOfBirth: initialData.dateOfBirth
-            ? initialData.dateOfBirth.split('T')[0]
-            : '',
-        });
-      } else if (type === "exam") {
-        setFormData({
-          name: initialData.name || '',
-          examType: initialData.examType || '',
-          academicYear: initialData.academicYear || '',
-          term: initialData.term || '',
-          startDate: initialData.startDate?.split('T')[0] || '',
-          endDate: initialData.endDate?.split('T')[0] || '',
-          description: initialData.description || '',
-          classId: initialData.classId || ''
-        });
-      } else if (type === "exam schedule") {
-        setFormData({
-          subject: initialData.subject || '',
-          examDate: initialData.examDate?.split('T')[0] || '',
-          startTime: initialData.startTime || '',
-          endTime: initialData.endTime || '',
-          className: initialData.className || '',
-          roomNumber: initialData.roomNumber || '',
-        });
-      } else if (type === "class") {
-        setFormData({
-          name: initialData.name || '',
-          section: initialData.section || '',
-          academicYear: initialData.academicYear || '',
-          description: initialData.description || '',
-        });
-      } else {
-        setFormData(initialData); // default fallback
-      }
-    } else {
-      // Only reset if formData is not already empty/default to avoid loops if setFormData triggers re-render
-      // But better: relies on isOpen changing to reset.
-      // We will assume that when isOpen opens, we want to reset if no initialData.
-
-      setFormData(Object.keys(formData).reduce((acc, key) => {
-        acc[key] = '';
-        return acc;
-      }, {}));
+      setFormData({
+        ...initialData,
+        dateOfBirth: initialData.dateOfBirth
+          ? initialData.dateOfBirth.split("T")[0]
+          : ""
+      });
     }
-  }, [initialData, isOpen, type]); // Removed 'fields' and 'formData' to avoid infinite loops
+  }, [initialData]);
+
+  /* ===============================
+     TABS
+  =============================== */
+
+  const tabs = useMemo(() => {
+    const uniqueTabs = new Set();
+    Object.values(fieldConfig).forEach((f) => {
+      if (f.tab) uniqueTabs.add(f.tab);
+    });
+
+    const iconMap = {
+      basic: UserIcon,
+      personal: IdentificationIcon,
+      contact: EnvelopeIcon,
+      location: MapPinIcon,
+      professional: BriefcaseIcon,
+      academic: AcademicCapIcon
+    };
+
+    return Array.from(uniqueTabs).map((tab) => ({
+      id: tab,
+      name: tab.charAt(0).toUpperCase() + tab.slice(1),
+      icon: iconMap[tab] || UserIcon
+    }));
+  }, [fieldConfig]);
+
+  useEffect(() => {
+    if (tabs.length > 0 && !tabs.find((t) => t.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [tabs]);
+
+  /* ===============================
+     HANDLERS
+  =============================== */
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -90,315 +115,156 @@ const Form = ({
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
-        setFormData(prev => ({
-          ...prev,
-          [name]: reader.result
-        }));
+        setFormData((prev) => ({ ...prev, [name]: reader.result }));
       };
       reader.readAsDataURL(files[0]);
     } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = {
-      ...formData,
-      dateOfBirth: formData.dateOfBirth
-        ? new Date(formData.dateOfBirth)
-        : null,
-    };
-    onSubmit(payload);
+    onSubmit(formData);
   };
 
-  if (!isOpen) return null;
+  /* ===============================
+     FIELD RENDER
+  =============================== */
 
-  // Field configuration with icons and types
-  const defaultFieldConfig = {
-    firstName: { icon: UserIcon, type: 'text', label: 'First Name', tab: 'basic' },
-    lastName: { icon: UserIcon, type: 'text', label: 'Last Name', tab: 'basic' },
-    email: { icon: EnvelopeIcon, type: 'email', label: 'Email Address', tab: 'contact' },
-    phone: { icon: PhoneIcon, type: 'tel', label: 'Phone Number', tab: 'contact' },
-    dateOfBirth: { icon: CakeIcon, type: 'date', label: 'Date of Birth', tab: 'personal' },
-    gender: { icon: IdentificationIcon, type: 'select', label: 'Gender', tab: 'personal' },
-    address: { icon: MapPinIcon, type: 'textarea', label: 'Address', tab: 'location' },
-    city: { icon: MapPinIcon, type: 'text', label: 'City', tab: 'location' },
-    country: { icon: GlobeAltIcon, type: 'text', label: 'Country', tab: 'location' },
-    occupation: { icon: BriefcaseIcon, type: 'text', label: 'Occupation', tab: 'professional' },
-  };
-
-  const fieldConfig = fields || defaultFieldConfig;
-
-  const inputStyle = `
-    w-full bg-white dark:bg-slate-800/50 
-    border border-slate-200 dark:border-slate-700 
-    rounded-xl px-4 py-3 
-    text-slate-900 dark:text-white 
-    placeholder-slate-400 dark:placeholder-slate-500 
-    focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 
+  const inputClass = `
+    w-full p-3 rounded-xl
+    bg-white dark:bg-slate-800
+    border border-slate-300 dark:border-slate-600
+    text-slate-900 dark:text-white
+    focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500
     transition-all duration-200
-    hover:border-slate-300 dark:hover:border-slate-600
   `;
-
-  const labelStyle = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 ml-1";
-
-  const formatLabel = (key) => {
-    return fieldConfig[key]?.label || key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase());
-  };
-
-  const tabs = useMemo(() => {
-    const uniqueTabs = new Set();
-    Object.values(fieldConfig).forEach(config => {
-      if (config.tab) {
-        uniqueTabs.add(config.tab);
-      }
-    });
-    
-    // Convert to array and add default icons
-    const tabArray = Array.from(uniqueTabs).map(tabId => {
-      const iconMap = {
-        student: UserIcon,
-        basic: UserIcon,
-        personal: IdentificationIcon,
-        contact: EnvelopeIcon,
-        location: MapPinIcon,
-        professional: BriefcaseIcon,
-        academic: AcademicCapIcon,
-      };
-      
-      const nameMap = {
-        student: 'Student Information',
-        basic: 'Basic Info',
-        personal: 'Personal',
-        contact: 'Contact',
-        location: 'Location',
-        professional: 'Professional',
-        academic: 'Academic',
-      };
-      
-      return {
-        id: tabId,
-        name: nameMap[tabId] || tabId.charAt(0).toUpperCase() + tabId.slice(1),
-        icon: iconMap[tabId] || UserIcon
-      };
-    });
-    
-    // If no tabs found, default to student tab
-    return tabArray.length > 0 ? tabArray : [{ id: 'student', name: 'Information', icon: UserIcon }];
-  }, [fieldConfig]);
-
-  useEffect(() => {
-    if (tabs.length > 0 && !tabs.find(tab => tab.id === activeTab)) {
-      setActiveTab(tabs[0].id);
-    }
-  }, [tabs, activeTab]);
 
   const renderField = (key) => {
     const config = fieldConfig[key];
     if (!config) return null;
 
-    const Icon = config.icon || UserIcon;
-
-    if (key === 'gender') {
-      return (
-        <div className="space-y-2">
-          <select
-            name={key}
-            value={formData[key] || ''}
-            onChange={handleChange}
-            className={`${inputStyle}`}
-          >
-            <option value="">Select Gender</option>
-            {config.options?.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      );
-    }
-
-    if (key === 'address') {
+    if (config.type === "textarea") {
       return (
         <textarea
           name={key}
-          value={formData[key] || ''}
+          value={formData[key] || ""}
           onChange={handleChange}
-          rows="3"
-          className={`${inputStyle} resize-none`}
-          placeholder={`Enter ${formatLabel(key)}`}
+          className={inputClass}
         />
       );
     }
 
-    if (config.type === 'image') {
+    if (config.type === "select") {
       return (
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-20 h-20 rounded-lg object-cover border-4 border-cyan-500/30"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                <CameraIcon className="h-8 w-8 text-white" />
-              </div>
-            )}
-            <label
-              htmlFor={key}
-              className="absolute bottom-0 right-0 bg-cyan-600 p-1.5 rounded-full cursor-pointer hover:bg-cyan-700 transition-colors shadow-lg"
-            >
-              <CameraIcon className="h-4 w-4 text-white" />
-            </label>
-            <input
-              type="file"
-              id={key}
-              name={key}
-              accept="image/*"
-              onChange={handleChange}
-              className="hidden"
-            />
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {config.label || 'Upload Image'}
-          </p>
-        </div>
+        <select
+          name={key}
+          value={formData[key] || ""}
+          onChange={handleChange}
+          className={inputClass}
+        >
+          <option value="">Select</option>
+          {config.options?.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       );
     }
 
     return (
       <input
-        type={config.type || 'text'}
+        type={config.type || "text"}
         name={key}
-        value={formData[key] || ''}
+        value={formData[key] || ""}
         onChange={handleChange}
-        className={inputStyle}
-        placeholder={`Enter ${formatLabel(key)}`}
+        className={inputClass}
       />
     );
   };
 
+  /* ===============================
+     RETURN
+  =============================== */
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+    <div
+      className={`
+        fixed inset-0 z-50 flex items-center justify-center p-4
+        bg-black/50 backdrop-blur-sm
+        transition-all duration-300
+        ${isOpen
+          ? "opacity-100 visible pointer-events-auto"
+          : "opacity-0 invisible pointer-events-none"}
+      `}
+    >
+      <div className="w-full max-w-3xl 
+        bg-white dark:bg-slate-900
+        border border-slate-200 dark:border-slate-700
+        rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
 
-      {/* Modal Container */}
-      <div className="w-full max-w-4xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-scaleIn">
-
-        {/* Header with Gradient */}
-        <div className="relative bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-5">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                {initialData ? `Edit ${title}` : `Create New ${title}`}
-              </h2>
-              <p className="text-cyan-100 text-sm mt-1">
-                {initialData ? 'Update the information below' : 'Fill in the details to create a new entry'}
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all duration-200 hover:scale-110"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
-          </div>
+        {/* HEADER */}
+        <div className="flex justify-between items-center p-5 
+          bg-gradient-to-r from-cyan-600 to-blue-600 text-white">
+          <h2 className="text-xl font-semibold">
+            {initialData ? "Edit" : "Create"} {title}
+          </h2>
+          <button onClick={onClose}>
+            <XMarkIcon className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-6">
-          <nav className="flex space-x-4 overflow-x-auto">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    py-3 px-2 border-b-2 font-medium text-sm flex items-center gap-2 whitespace-nowrap
-                    transition-all duration-200
-                    ${activeTab === tab.id
-                      ? 'border-cyan-600 text-cyan-600 dark:text-cyan-400'
-                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'
-                    }
-                  `}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.name}
-                </button>
-              );
-            })}
-          </nav>
+        {/* TABS */}
+        <div className="flex gap-4 px-6 
+          border-b border-slate-200 dark:border-slate-700
+          bg-slate-50 dark:bg-slate-800/50 transition-colors duration-300">
+
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-3 text-sm flex items-center gap-2 border-b-2 transition-all duration-200
+                  ${activeTab === tab.id
+                    ? "border-cyan-600 text-cyan-600 dark:text-cyan-400"
+                    : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.name}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
-
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <span>Form Completion</span>
-              <span>
-                {Object.values(formData).filter(v => v && v !== '').length} / {Object.keys(formData).length} fields
-              </span>
-            </div>
-            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
-                style={{
-                  width: `${(Object.values(formData).filter(v => v && v !== '').length / Object.keys(formData).length) * 100}%`
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Form Fields */}
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-
-            {/* Profile Image - Special Section */}
-            {Object.keys(formData).some(key => fieldConfig[key]?.type === 'image') && (
-              <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800/30 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                  <CameraIcon className="h-4 w-4 text-cyan-600" />
-                  Image Upload
-                </h3>
-                {renderField(Object.keys(formData).find(key => fieldConfig[key]?.type === 'image'))}
+        {/* FORM */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-5 max-h-[60vh] overflow-y-auto"
+        >
+          {Object.keys(formData)
+            .filter((key) => fieldConfig[key]?.tab === activeTab)
+            .map((key) => (
+              <div key={key}>
+                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
+                  {fieldConfig[key]?.label}
+                </label>
+                {renderField(key)}
               </div>
-            )}
+            ))}
 
-            {/* Dynamic Fields Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {Object.keys(formData)
-                .filter(key => fieldConfig[key]?.type !== 'image' && fieldConfig[key]?.tab === activeTab)
-                .map((key) => (
-                  <div key={key} className={key === 'address' ? 'md:col-span-2' : ''}>
-                    <label className={labelStyle}>
-                      <span className="flex items-center gap-2">
-                        {fieldConfig[key]?.icon && React.createElement(fieldConfig[key].icon, { className: "h-4 w-4 text-cyan-600" })}
-                        {formatLabel(key)}
-                      </span>
-                    </label>
-                    {renderField(key)}
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* Footer Buttons */}
-          <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 hover:scale-105"
+              className="px-5 py-2 rounded-xl
+                border border-slate-300 dark:border-slate-600
+                text-slate-700 dark:text-slate-300
+                hover:bg-slate-100 dark:hover:bg-slate-800
+                transition-all duration-200"
             >
               Cancel
             </button>
@@ -406,75 +272,17 @@ const Form = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative px-8 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+              className="px-6 py-2 rounded-xl
+                bg-gradient-to-r from-cyan-600 to-blue-600
+                hover:from-cyan-700 hover:to-blue-700
+                text-white shadow-lg
+                transition-all duration-200"
             >
-              <span className="relative z-10 flex items-center gap-2">
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    {initialData ? 'Update' : 'Create'} {title}
-                  </>
-                )}
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              {isLoading ? "Saving..." : initialData ? "Update" : "Create"}
             </button>
           </div>
         </form>
       </div>
-
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #475569;
-        }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #64748b;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-
-        .animate-scaleIn {
-          animation: scaleIn 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 };
