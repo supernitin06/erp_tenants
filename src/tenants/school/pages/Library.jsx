@@ -85,19 +85,19 @@ const Library = () => {
     // Process data
     const libraries = useMemo(() => {
         if (!librariesData) return [];
-        return Array.isArray(librariesData) ? librariesData : 
-               librariesData?.data || librariesData?.libraries || [];
+        return Array.isArray(librariesData) ? librariesData :
+            librariesData?.data || librariesData?.libraries || [];
     }, [librariesData]);
 
     const books = useMemo(() => {
         if (!booksData) return [];
-        return Array.isArray(booksData) ? booksData : 
-               booksData?.data || booksData?.books || [];
+        return Array.isArray(booksData) ? booksData :
+            booksData?.data || booksData?.books || [];
     }, [booksData]);
 
     // Filter libraries
     const filteredLibraries = useMemo(() => {
-        return libraries.filter(library => 
+        return libraries.filter(library =>
             library.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             library.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             library.librarian?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -106,7 +106,7 @@ const Library = () => {
 
     // Filter books
     const filteredBooks = useMemo(() => {
-        return books.filter(book => 
+        return books.filter(book =>
             book.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             book.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             book.isbn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -132,11 +132,34 @@ const Library = () => {
     // Columns Configuration
     const libraryColumns = useMemo(() => [
         { key: 'name', header: 'Name', isPrimary: true },
-        { key: 'location', header: 'Location' },
-        { key: 'librarian', header: 'Librarian' },
-        { key: 'contact', header: 'Contact' },
-        { key: 'totalBooks', header: 'Books', render: (item) => item.totalBooks || 0 }
+
+        {
+            key: 'isActive',
+            header: 'Status',
+            render: (item) => (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.isActive
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400'
+                    : 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400'
+                    }`}>
+                    {item.isActive ? 'Active' : 'Inactive'}
+                </span>
+            )
+        },
+        {
+            key: '_count.books',
+            header: 'Books',
+            render: (item) => item?._count?.books || 0
+        },
+        {
+            key: 'createdAt',
+            header: 'Created',
+            render: (item) =>
+                item.createdAt
+                    ? new Date(item.createdAt).toLocaleDateString()
+                    : '-'
+        }
     ], []);
+
 
     const bookColumns = useMemo(() => [
         { key: 'title', header: 'Title', isPrimary: true },
@@ -144,11 +167,13 @@ const Library = () => {
         { key: 'isbn', header: 'ISBN' },
         { key: 'category', header: 'Category' },
         { key: 'quantity', header: 'Qty' },
-        { key: 'status', header: 'Status', render: (item) => (
-             <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.quantity > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400'}`}>
-                 {item.quantity > 0 ? 'Available' : 'Out of Stock'}
-             </span>
-        )}
+        {
+            key: 'status', header: 'Status', render: (item) => (
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.quantity > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-400'}`}>
+                    {item.quantity > 0 ? 'Available' : 'Out of Stock'}
+                </span>
+            )
+        }
     ], []);
 
     // Fields Configuration
@@ -339,7 +364,7 @@ const Library = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950">
-            
+
             {/* Animated Background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -347,7 +372,7 @@ const Library = () => {
             </div>
 
             <div className="relative px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-                
+
                 {/* Header */}
                 <div className="mb-8 relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl"></div>
@@ -382,13 +407,13 @@ const Library = () => {
                                         <SparklesIcon className="h-6 w-6 text-amber-500" />
                                     </div>
                                     <p className="text-gray-600 dark:text-gray-300">
-                                        {selectedView === 'books' && selectedLibrary 
+                                        {selectedView === 'books' && selectedLibrary
                                             ? `Manage books in ${selectedLibrary.name} library`
                                             : 'Manage libraries and their book collections'}
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <button
                                 onClick={selectedView === 'libraries' ? handleAddLibrary : handleAddBook}
                                 className="group relative inline-flex items-center justify-center px-6 py-3 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-lg shadow-indigo-600/30 hover:shadow-xl hover:shadow-purple-600/40 transition-all duration-300"
@@ -464,8 +489,8 @@ const Library = () => {
                 <div className="mb-6">
                     <SearchBar
                         onSearch={(term) => setSearchTerm(term)}
-                        placeholder={selectedView === 'libraries' 
-                            ? "Search libraries by name, location, or librarian..." 
+                        placeholder={selectedView === 'libraries'
+                            ? "Search libraries by name, location, or librarian..."
                             : "Search books by title, author, ISBN, or category..."}
                     />
                 </div>

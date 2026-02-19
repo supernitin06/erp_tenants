@@ -38,6 +38,13 @@ export const classApi = apiSlice.injectEndpoints({
             invalidatesTags: ['Class'],
         }),
 
+        deleteClass: builder.mutation({
+            query: ({ tenantId, id }) => ({
+                url: `tenant/${tenantId}/classes/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Class'],
+        }),
 
 
     }),
@@ -49,4 +56,5 @@ export const {
     useGetAllClassesQuery,
     useGetClassByIdQuery,
     useUpdateClassMutation,
+    useDeleteClassMutation,
 } = classApi;

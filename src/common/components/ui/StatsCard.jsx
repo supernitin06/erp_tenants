@@ -1,6 +1,6 @@
 // components/StatsCard.jsx
 import React from 'react';
-import { motion } from 'framer-motion'; // Optional: for animations
+import { motion } from 'framer-motion';
 
 const StatsCard = ({
   title,
@@ -13,52 +13,37 @@ const StatsCard = ({
   isLoading = false,
   onClick = null,
 }) => {
-  // Color variants for different card styles
+
   const colorVariants = {
     blue: {
-      bg: 'bg-blue-50',
+      bg: 'bg-blue-50 dark:bg-blue-500/10',
       iconBg: 'bg-blue-500',
-      iconColor: 'text-white',
-      border: 'border-blue-100',
-      text: 'text-blue-900',
-      trendUp: 'text-green-600',
-      trendDown: 'text-red-600',
+      border: 'border-blue-100 dark:border-blue-500/20',
+      text: 'text-blue-900 dark:text-blue-300',
     },
     green: {
-      bg: 'bg-green-50',
+      bg: 'bg-green-50 dark:bg-green-500/10',
       iconBg: 'bg-green-500',
-      iconColor: 'text-white',
-      border: 'border-green-100',
-      text: 'text-green-900',
-      trendUp: 'text-green-600',
-      trendDown: 'text-red-600',
+      border: 'border-green-100 dark:border-green-500/20',
+      text: 'text-green-900 dark:text-green-300',
     },
     purple: {
-      bg: 'bg-purple-50',
+      bg: 'bg-purple-50 dark:bg-purple-500/10',
       iconBg: 'bg-purple-500',
-      iconColor: 'text-white',
-      border: 'border-purple-100',
-      text: 'text-purple-900',
-      trendUp: 'text-green-600',
-      trendDown: 'text-red-600',
+      border: 'border-purple-100 dark:border-purple-500/20',
+      text: 'text-purple-900 dark:text-purple-300',
     },
     orange: {
-      bg: 'bg-orange-50',
+      bg: 'bg-orange-50 dark:bg-orange-500/10',
       iconBg: 'bg-orange-500',
-      iconColor: 'text-white',
-      border: 'border-orange-100',
-      text: 'text-orange-900',
-      trendUp: 'text-green-600',
-      trendDown: 'text-red-600',
+      border: 'border-orange-100 dark:border-orange-500/20',
+      text: 'text-orange-900 dark:text-orange-300',
     },
     pink: {
-      bg: 'bg-pink-50',
+      bg: 'bg-pink-50 dark:bg-pink-500/10',
       iconBg: 'bg-pink-500',
-      iconColor: 'text-white',
-      border: 'border-pink-100',
-      text: 'text-pink-900',
-      trendUp: 'text-green-600',
-      trendDown: 'text-red-600',
+      border: 'border-pink-100 dark:border-pink-500/20',
+      text: 'text-pink-900 dark:text-pink-300',
     },
   };
 
@@ -69,10 +54,10 @@ const StatsCard = ({
       <div className={`p-6 rounded-xl border ${colors.border} ${colors.bg} animate-pulse`}>
         <div className="flex items-start justify-between">
           <div className="space-y-3">
-            <div className="h-4 w-24 bg-gray-200 rounded"></div>
-            <div className="h-8 w-32 bg-gray-300 rounded"></div>
+            <div className="h-4 w-24 bg-gray-200 dark:bg-slate-700 rounded"></div>
+            <div className="h-8 w-32 bg-gray-300 dark:bg-slate-600 rounded"></div>
           </div>
-          <div className={`p-3 rounded-lg ${colors.iconBg} bg-opacity-50`}>
+          <div className={`p-3 rounded-lg ${colors.iconBg} opacity-50`}>
             <div className="w-6 h-6"></div>
           </div>
         </div>
@@ -82,52 +67,52 @@ const StatsCard = ({
 
   return (
     <motion.div
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      whileHover={{ y: -4 }}
       className={`
-        relative p-6 rounded-xl border ${colors.border} ${colors.bg}
-        ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}
+        relative p-6 rounded-xl border
+        ${colors.border} ${colors.bg}
+        transition-all duration-300
+        ${onClick ? 'cursor-pointer hover:shadow-xl dark:hover:shadow-black/30' : ''}
       `}
       onClick={onClick}
     >
-      {/* Main Content */}
       <div className="flex items-start justify-between">
-        {/* Text Content */}
         <div className="space-y-2">
           <p className={`text-sm font-medium ${colors.text} opacity-80`}>
             {title}
           </p>
-          
+
           <div className="flex items-baseline space-x-2">
-            <h3 className="text-3xl font-bold text-gray-900">
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white">
               {value}
             </h3>
-            
-            {/* Trend Indicator */}
+
             {trend && (
               <span className={`
                 text-sm font-semibold flex items-center
-                ${trend === 'up' ? colors.trendUp : colors.trendDown}
+                ${trend === 'up'
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'}
               `}>
                 {trend === 'up' ? '↑' : '↓'} {trendValue}
               </span>
             )}
           </div>
 
-          {/* Subtitle */}
           {subtitle && (
-            <p className="text-sm text-gray-600">{subtitle}</p>
+            <p className="text-sm text-gray-600 dark:text-slate-400">
+              {subtitle}
+            </p>
           )}
         </div>
 
-        {/* Icon */}
         <div className={`p-3 rounded-lg ${colors.iconBg} shadow-lg`}>
-          <Icon className={`w-6 h-6 ${colors.iconColor}`} />
+          <Icon className="w-6 h-6 text-white" />
         </div>
       </div>
 
-      {/* Optional Progress Bar */}
       {trend && (
-        <div className="mt-4 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+        <div className="mt-4 w-full h-1 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: '75%' }}
