@@ -11,7 +11,6 @@ import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
 import DataCards from '../../../common/components/ui/DataCards';
 import StatsCard from '../../../common/components/ui/StatsCard';
-// import SearchBar from '../../../common/components/ui/SearchBar';
 import SearchAndFilter from '../../../common/components/ui/SearchAndFilter';
 import Button from '../../../common/components/ui/Button';
 
@@ -21,7 +20,10 @@ import {
     BookOpenIcon,
     UsersIcon,
     CalendarIcon,
-
+    BookmarkIcon,
+    DocumentTextIcon,
+    UserIcon,
+    HashtagIcon
 } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -107,7 +109,6 @@ const ClassManagement = () => {
 
         return matchesSearch && matchesName && matchesYear;
     });
-
 
     const handleDelete = async (id) => {
         if (deleteConfirm === id) {
@@ -196,6 +197,7 @@ const ClassManagement = () => {
         }
     };
 
+<<<<<<< HEAD
     const classFieldConfig = {
         name: { type: "text", label: "Class Name", tab: "basic" },
         section: { type: "text", label: "Section", tab: "basic" },
@@ -204,6 +206,8 @@ const ClassManagement = () => {
         classTeacher: { type: "text", label: "Class Teacher", tab: "academic" },
         capacity: { type: "number", label: "Capacity", tab: "academic" },
     };
+=======
+>>>>>>> main
     // Card fields configuration with safe rendering
     const cardFields = [
         {
@@ -224,7 +228,6 @@ const ClassManagement = () => {
                 return String(value);
             }
         },
-
         {
             key: 'academicYear',
             label: 'Academic Year',
@@ -234,7 +237,6 @@ const ClassManagement = () => {
                 return String(value);
             }
         },
-
         {
             key: 'description',
             label: 'Description',
@@ -280,7 +282,6 @@ const ClassManagement = () => {
         }
     ];
 
-
     // Calculate stats safely
     const totalStudents = classes.reduce((acc, cls) => {
         if (cls && cls.capacity) {
@@ -324,7 +325,6 @@ const ClassManagement = () => {
            rounded-2xl shadow-sm 
            border border-gray-100 dark:border-slate-700 
            p-6 transition-colors duration-300"
-
                 >
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="flex items-center gap-4">
@@ -387,28 +387,7 @@ const ClassManagement = () => {
                         setSearchTerm={setSearchQuery}
                         filters={activeFilters}
                         setFilters={setActiveFilters}
-                        filterOptions={[
-                            {
-                                key: 'name',
-                                label: 'Class Name',
-                                placeholder: 'All Classes',
-                                defaultValue: '',
-                                options: classNames.map(name => ({
-                                    label: name,
-                                    value: name
-                                }))
-                            },
-                            {
-                                key: 'academicYear',
-                                label: 'Academic Year',
-                                placeholder: 'All Years',
-                                defaultValue: '',
-                                options: academicYears.map(year => ({
-                                    label: year,
-                                    value: year
-                                }))
-                            }
-                        ]}
+                        filterOptions={searchFilters}
                         placeholder="Search classes..."
                         loading={isLoading}
                     />
@@ -489,6 +468,7 @@ const ClassManagement = () => {
                         </div>
                     )}
                 </motion.div>
+
                 <Form
                     isOpen={isModalOpen}
                     formData={formData}
@@ -505,4 +485,5 @@ const ClassManagement = () => {
         </div>
     );
 };
+
 export default ClassManagement;
