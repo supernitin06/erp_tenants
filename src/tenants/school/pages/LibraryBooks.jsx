@@ -48,7 +48,24 @@ const LibraryBooks = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState({
+        libraryId: '',
+        coverImage: '',
+        title: '',
+        author: '',
+        isbn: '',
+        category: '',
+        publisher: '',
+        publishYear: '',
+        edition: '',
+        pages: '',
+        language: '',
+        quantity: '',
+        price: '',
+        shelf: '',
+        rack: '',
+        description: ''
+    });
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [sortBy, setSortBy] = useState('title');
@@ -137,7 +154,7 @@ const LibraryBooks = () => {
 
     // Configuration
     const bookFields = {
-        coverImage: { label: 'Cover Image', type: 'image', icon: PhotoIcon, tab: 'basic' },
+        coverImage: { label: 'Cover Image', type: 'file', icon: PhotoIcon, tab: 'basic' },
         title: { label: 'Title', type: 'text', icon: BookOpenIcon, tab: 'basic' },
         author: { label: 'Author', type: 'text', icon: UserIcon, tab: 'basic' },
         isbn: { label: 'ISBN', type: 'text', icon: IdentificationIcon, tab: 'basic' },
@@ -161,7 +178,24 @@ const LibraryBooks = () => {
             return;
         }
         setSelectedBook(null);
-        setFormData({});
+        setFormData({
+            libraryId: selectedLibraryId,
+            coverImage: '',
+            title: '',
+            author: '',
+            isbn: '',
+            category: '',
+            publisher: '',
+            publishYear: '',
+            edition: '',
+            pages: '',
+            language: '',
+            quantity: '',
+            price: '',
+            shelf: '',
+            rack: '',
+            description: ''
+        });
         setIsModalOpen(true);
     };
 
@@ -182,20 +216,56 @@ const LibraryBooks = () => {
         }
     };
 
+    // const handleSubmit = async (data) => {
+    //     try {
+    //         if (selectedBook) {
+    //             await updateBook({ tenantName, id: selectedBook.id || selectedBook._id, data }).unwrap();
+    //         } else {
+    //             await addBook({ tenantName, libraryId: selectedLibraryId, data }).unwrap();
+    //         }
+    //         setIsModalOpen(false);
+    //         refetchBooks();
+    //     } catch (error) {
+    //         alert(error?.data?.message || 'Something went wrong');
+    //     }
+    // };
+
     const handleSubmit = async (data) => {
         try {
-            if (selectedBook) {
-                await updateBook({ tenantName, id: selectedBook.id || selectedBook._id, data }).unwrap();
-            } else {
-                await addBook({ tenantName, libraryId: selectedLibraryId, data }).unwrap();
+            const formDataToSend = new FormData();
+
+            Object.keys(data).forEach((key) => {
+                if (key !== "coverImage") {
+                    formDataToSend.append(key, data[key]);
+                }
+            });
+
+            // ✅ Only append file if it's a File
+            if (data.coverImage instanceof File) {
+                formDataToSend.append("coverImage", data.coverImage);
             }
+
+            if (selectedBook) {
+                await updateBook({
+                    tenantName,
+                    id: selectedBook.id || selectedBook._id,
+                    data: formDataToSend
+                }).unwrap();
+            } else {
+                await addBook({
+                    tenantName,
+                    libraryId: selectedLibraryId,
+                    data: formDataToSend
+                }).unwrap();
+            }
+
             setIsModalOpen(false);
             refetchBooks();
+
         } catch (error) {
             alert(error?.data?.message || 'Something went wrong');
         }
     };
-
     const toggleFavorite = (bookId) => {
         setFavorites(prev =>
             prev.includes(bookId)
@@ -261,8 +331,8 @@ const LibraryBooks = () => {
                     {/* Status Badge */}
                     <div className="absolute top-3 left-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${book.quantity > 0
-                                ? 'bg-emerald-500/90 text-white'
-                                : 'bg-rose-500/90 text-white'
+                            ? 'bg-emerald-500/90 text-white'
+                            : 'bg-rose-500/90 text-white'
                             }`}>
                             {book.quantity > 0 ? 'Available' : 'Out of Stock'}
                         </span>
@@ -437,8 +507,8 @@ const LibraryBooks = () => {
                             <button
                                 onClick={() => setViewMode('grid')}
                                 className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 <ViewColumnsIcon className="w-5 h-5" />
@@ -446,8 +516,8 @@ const LibraryBooks = () => {
                             <button
                                 onClick={() => setViewMode('list')}
                                 className={`p-2 rounded-lg transition-all ${viewMode === 'list'
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                     }`}
                             >
                                 <DocumentTextIcon className="w-5 h-5" />
@@ -567,8 +637,8 @@ const LibraryBooks = () => {
                                         key={i + 1}
                                         onClick={() => setCurrentPage(i + 1)}
                                         className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === i + 1
-                                                ? 'bg-indigo-600 text-white'
-                                                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
                                             }`}
                                     >
                                         {i + 1}

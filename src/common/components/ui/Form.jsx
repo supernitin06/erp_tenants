@@ -112,12 +112,11 @@ const Form = ({
     const { name, value, files } = e.target;
 
     if (files && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setFormData((prev) => ({ ...prev, [name]: reader.result }));
-      };
-      reader.readAsDataURL(files[0]);
+      setImagePreview(URL.createObjectURL(files[0]));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: files[0]
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -172,6 +171,20 @@ const Form = ({
           ))}
         </select>
       );
+    }
+    if (config.type === "file") {
+      return (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            setFormData({
+              ...formData,
+              [key]: e.target.files[0]
+            });
+          }}
+        />
+      )
     }
 
     return (
