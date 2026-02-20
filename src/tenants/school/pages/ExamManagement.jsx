@@ -12,6 +12,7 @@ import { useGetAllClassesQuery } from '../api/classApi';
 
 import DataCards from '../../../common/components/ui/DataCards';
 import Form from '../../../common/components/ui/Form';
+import Button from '../../../common/components/ui/Button';
 
 import {
     ClipboardDocumentListIcon,
@@ -167,7 +168,7 @@ const ExamManagement = () => {
                     </p>
                 </div>
 
-                <button
+                {/* <button
                     onClick={handleCreate}
                     className="inline-flex items-center justify-center px-6 py-3 
                     bg-indigo-600 hover:bg-indigo-700 
@@ -178,7 +179,16 @@ const ExamManagement = () => {
                 >
                     <PlusIcon className="h-5 w-5 mr-2 stroke-2" />
                     New Examination
-                </button>
+                </button> */}
+                <Button
+                    handleCreate={handleCreate}
+                    className="group w-full sm:w-auto flex justify-center items-center px-6 py-3
+                             bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500
+                              text-white rounded-2xl font-semibold transition-all duration-300 shadow-lg
+                               shadow-cyan-600/30 hover:shadow-xl hover:shadow-cyan-600/40 active:scale-95"
+                    label="New Examination"
+
+                />
             </div>
 
             {/* Filter & Stats */}

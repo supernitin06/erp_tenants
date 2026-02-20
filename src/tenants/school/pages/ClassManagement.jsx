@@ -12,6 +12,7 @@ import Table from '../../../common/components/ui/Table';
 import DataCards from '../../../common/components/ui/DataCards';
 import StatsCard from '../../../common/components/ui/StatsCard';
 import SearchAndFilter from '../../../common/components/ui/SearchAndFilter';
+import Button from '../../../common/components/ui/Button';
 
 import {
     PlusIcon,
@@ -196,6 +197,15 @@ const ClassManagement = () => {
         }
     };
 
+    const classFieldConfig = {
+        name: { type: "text", label: "Class Name", tab: "basic" },
+        section: { type: "text", label: "Section", tab: "basic" },
+        academicYear: { type: "text", label: "Academic Year", tab: "academic" },
+        description: { type: "textarea", label: "Description", tab: "basic" },
+        classTeacher: { type: "text", label: "Class Teacher", tab: "academic" },
+        capacity: { type: "number", label: "Capacity", tab: "academic" },
+    };
+
     // Card fields configuration with safe rendering
     const cardFields = [
         {
@@ -329,19 +339,19 @@ const ClassManagement = () => {
                             </div>
                         </div>
 
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
+
+                        <Button
+                            handleCreate={() => {
                                 setSelectedClass(null);
                                 setFormData(initialFormState);
                                 setIsModalOpen(true);
                             }}
-                            className="flex items-center px-5 py-2.5 bg-indigo-600 text-white rounded-xl shadow-sm hover:bg-indigo-700 transition-all duration-200"
-                        >
-                            <PlusIcon className="h-5 w-5 mr-2" />
-                            Add Class
-                        </motion.button>
+                            className="group w-full sm:w-auto flex justify-center items-center px-6 py-3
+                             bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500
+                              text-white rounded-2xl font-semibold transition-all duration-300 shadow-lg
+                               shadow-cyan-600/30 hover:shadow-xl hover:shadow-cyan-600/40 active:scale-95"
+                            label="Add New Class"
+                        />
                     </div>
                 </motion.div>
 
@@ -465,7 +475,9 @@ const ClassManagement = () => {
                     onSubmit={handleSubmit}
                     initialData={selectedClass}
                     isLoading={isCreating || isUpdating}
-                    type="class"
+                    fields={classFieldConfig}
+                    type="Class"
+
                 />
             </div>
         </div>

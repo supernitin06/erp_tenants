@@ -29,12 +29,12 @@ const ExamManagement = () => {
 
     // Mock data - replace with actual API data
     const exams = [
-        { 
-            id: 1, 
-            name: 'Mathematics Final', 
-            class: '10A', 
+        {
+            id: 1,
+            name: 'Mathematics Final',
+            class: '10A',
             subject: 'Mathematics',
-            date: '2024-03-15', 
+            date: '2024-03-15',
             time: '10:00 AM - 1:00 PM',
             duration: '3 hours',
             totalMarks: 100,
@@ -44,12 +44,12 @@ const ExamManagement = () => {
             teacher: 'Mr. Sharma',
             color: 'blue'
         },
-        { 
-            id: 2, 
-            name: 'Science Mid-Term', 
-            class: '10B', 
+        {
+            id: 2,
+            name: 'Science Mid-Term',
+            class: '10B',
             subject: 'Science',
-            date: '2024-03-10', 
+            date: '2024-03-10',
             time: '9:00 AM - 12:00 PM',
             duration: '3 hours',
             totalMarks: 80,
@@ -59,12 +59,12 @@ const ExamManagement = () => {
             teacher: 'Ms. Patel',
             color: 'purple'
         },
-        { 
-            id: 3, 
-            name: 'English Literature', 
-            class: '9A', 
+        {
+            id: 3,
+            name: 'English Literature',
+            class: '9A',
             subject: 'English',
-            date: '2024-02-28', 
+            date: '2024-02-28',
             time: '11:00 AM - 1:00 PM',
             duration: '2 hours',
             totalMarks: 50,
@@ -74,12 +74,12 @@ const ExamManagement = () => {
             teacher: 'Mr. Kumar',
             color: 'emerald'
         },
-        { 
-            id: 4, 
-            name: 'Hindi Assessment', 
-            class: '9B', 
+        {
+            id: 4,
+            name: 'Hindi Assessment',
+            class: '9B',
             subject: 'Hindi',
-            date: '2024-03-05', 
+            date: '2024-03-05',
             time: '10:00 AM - 12:00 PM',
             duration: '2 hours',
             totalMarks: 50,
@@ -89,12 +89,12 @@ const ExamManagement = () => {
             teacher: 'Ms. Singh',
             color: 'amber'
         },
-        { 
-            id: 5, 
-            name: 'Social Studies Test', 
-            class: '8A', 
+        {
+            id: 5,
+            name: 'Social Studies Test',
+            class: '8A',
             subject: 'Social Studies',
-            date: '2024-03-12', 
+            date: '2024-03-12',
             time: '9:00 AM - 11:00 AM',
             duration: '2 hours',
             totalMarks: 60,
@@ -125,9 +125,9 @@ const ExamManagement = () => {
     const filteredExams = useMemo(() => {
         return exams.filter(exam => {
             const matchesSearch = exam.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                 exam.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                 exam.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                 exam.teacher.toLowerCase().includes(searchTerm.toLowerCase());
+                exam.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                exam.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                exam.teacher.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesFilter = filterStatus === 'all' || exam.status === filterStatus;
             return matchesSearch && matchesFilter;
         });
@@ -194,7 +194,7 @@ const ExamManagement = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950">
-            
+
             {/* Animated Background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -203,7 +203,7 @@ const ExamManagement = () => {
             </div>
 
             <div className="relative px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-                
+
                 {/* Header with Glass Effect */}
                 <div className="mb-8 relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl"></div>
@@ -228,7 +228,7 @@ const ExamManagement = () => {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setIsModalOpen(true)}
@@ -259,18 +259,17 @@ const ExamManagement = () => {
                                         <div className={`p-3 bg-gradient-to-br ${stat.gradient} rounded-xl shadow-lg`}>
                                             <Icon className="h-6 w-6 text-white" />
                                         </div>
-                                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                                            stat.change.startsWith('+') 
-                                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
-                                                : 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
-                                        }`}>
+                                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${stat.change.startsWith('+')
+                                            ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                                            : 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
+                                            }`}>
                                             {stat.change}
                                         </span>
                                     </div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{stat.label}</p>
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{stat.value}</p>
                                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                                        <div 
+                                        <div
                                             className={`bg-gradient-to-r ${stat.gradient} h-1.5 rounded-full transition-all duration-500 group-hover:w-full`}
                                             style={{ width: index === 0 ? '85%' : index === 1 ? '65%' : index === 2 ? '45%' : '92%' }}
                                         ></div>
@@ -330,11 +329,10 @@ const ExamManagement = () => {
                             <button
                                 key={tab}
                                 onClick={() => setSelectedTab(tab)}
-                                className={`relative px-6 py-2.5 text-sm font-medium capitalize rounded-xl transition-all duration-300 ${
-                                    selectedTab === tab
-                                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                }`}
+                                className={`relative px-6 py-2.5 text-sm font-medium capitalize rounded-xl transition-all duration-300 ${selectedTab === tab
+                                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    }`}
                             >
                                 {tab}
                             </button>
@@ -373,7 +371,7 @@ const ExamManagement = () => {
 
                 {/* Main Content */}
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-gray-700/50 overflow-hidden">
-                    
+
                     {/* Upcoming/Ongoing/Completed Exams Tab */}
                     {(selectedTab === 'upcoming' || selectedTab === 'ongoing' || selectedTab === 'completed') && (
                         <div className="overflow-x-auto">
@@ -395,55 +393,55 @@ const ExamManagement = () => {
                                     {filteredExams
                                         .filter(exam => selectedTab === 'all' || exam.status === selectedTab)
                                         .map((exam) => (
-                                        <tr key={exam.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className={`p-2 rounded-lg ${getColorClasses(exam.color)} mr-3`}>
-                                                        <ClipboardDocumentListIcon className="h-4 w-4" />
+                                            <tr key={exam.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className={`p-2 rounded-lg ${getColorClasses(exam.color)} mr-3`}>
+                                                            <ClipboardDocumentListIcon className="h-4 w-4" />
+                                                        </div>
+                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            {exam.name}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {exam.name}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                    {exam.class}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2.5 py-1 text-xs font-medium rounded-lg ${getColorClasses(exam.color)}`}>
+                                                        {exam.subject}
                                                     </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                {exam.class}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2.5 py-1 text-xs font-medium rounded-lg ${getColorClasses(exam.color)}`}>
-                                                    {exam.subject}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm text-gray-900 dark:text-white">{exam.date}</span>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">{exam.time}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                {exam.duration}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                {exam.totalMarks} (P: {exam.passingMarks})
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(exam.status)}`}>
-                                                    {exam.status.charAt(0).toUpperCase() + exam.status.slice(1)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                {exam.venue}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                <button className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mr-3">
-                                                    <PencilIcon className="h-5 w-5" />
-                                                </button>
-                                                <button className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300">
-                                                    <TrashIcon className="h-5 w-5" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm text-gray-900 dark:text-white">{exam.date}</span>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">{exam.time}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                    {exam.duration}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                    {exam.totalMarks} (P: {exam.passingMarks})
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(exam.status)}`}>
+                                                        {exam.status.charAt(0).toUpperCase() + exam.status.slice(1)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                    {exam.venue}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                    <button className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mr-3">
+                                                        <PencilIcon className="h-5 w-5" />
+                                                    </button>
+                                                    <button className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300">
+                                                        <TrashIcon className="h-5 w-5" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         </div>
@@ -510,7 +508,7 @@ const ExamManagement = () => {
                                                     <span className="text-sm text-gray-600 dark:text-gray-400">{subject.avgMarks}% avg</span>
                                                 </div>
                                                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                                                    <div 
+                                                    <div
                                                         className={`bg-gradient-to-r from-${subject.color}-500 to-${subject.color}-400 h-2 rounded-full`}
                                                         style={{ width: `${subject.avgMarks}%` }}
                                                     ></div>
