@@ -59,11 +59,11 @@ const LibraryBooks = () => {
 
     // Fetch Libraries
     const { data: librariesData, isLoading: librariesLoading } = useGetAllLibrariesQuery(tenantName);
-    
+
     const libraries = useMemo(() => {
         if (!librariesData) return [];
-        return Array.isArray(librariesData) ? librariesData : 
-               librariesData?.data || librariesData?.libraries || [];
+        return Array.isArray(librariesData) ? librariesData :
+            librariesData?.data || librariesData?.libraries || [];
     }, [librariesData]);
 
     // Auto-select first library
@@ -88,8 +88,8 @@ const LibraryBooks = () => {
 
     const books = useMemo(() => {
         if (!booksData) return [];
-        return Array.isArray(booksData) ? booksData : 
-               booksData?.data || booksData?.books || [];
+        return Array.isArray(booksData) ? booksData :
+            booksData?.data || booksData?.books || [];
     }, [booksData]);
 
     // Get unique categories
@@ -101,15 +101,15 @@ const LibraryBooks = () => {
     // Filter and sort books
     const filteredBooks = useMemo(() => {
         let filtered = books.filter(book => {
-            const matchesSearch = searchTerm === '' || 
+            const matchesSearch = searchTerm === '' ||
                 book.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 book.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 book.isbn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 book.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 book.description?.toLowerCase().includes(searchTerm.toLowerCase());
-            
+
             const matchesCategory = selectedCategory === 'all' || book.category === selectedCategory;
-            
+
             return matchesSearch && matchesCategory;
         });
 
@@ -197,8 +197,8 @@ const LibraryBooks = () => {
     };
 
     const toggleFavorite = (bookId) => {
-        setFavorites(prev => 
-            prev.includes(bookId) 
+        setFavorites(prev =>
+            prev.includes(bookId)
                 ? prev.filter(id => id !== bookId)
                 : [...prev, bookId]
         );
@@ -211,7 +211,7 @@ const LibraryBooks = () => {
         const isFavorite = favorites.includes(bookId);
 
         return (
-            <div 
+            <div
                 className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700"
                 onMouseEnter={() => setShowDetails(true)}
                 onMouseLeave={() => setShowDetails(false)}
@@ -219,8 +219,8 @@ const LibraryBooks = () => {
                 {/* Image Container */}
                 <div className="relative h-56 overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-800">
                     {book.coverImageUrl || book.image ? (
-                        <img 
-                            src={book.coverImageUrl || book.image} 
+                        <img
+                            src={book.coverImageUrl || book.image}
                             alt={book.title}
                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                         />
@@ -229,7 +229,7 @@ const LibraryBooks = () => {
                             <PhotoIcon className="w-20 h-20 text-slate-300 dark:text-slate-600" />
                         </div>
                     )}
-                    
+
                     {/* Overlay with actions */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className="absolute top-3 right-3 flex gap-2">
@@ -260,11 +260,10 @@ const LibraryBooks = () => {
 
                     {/* Status Badge */}
                     <div className="absolute top-3 left-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
-                            book.quantity > 0 
-                                ? 'bg-emerald-500/90 text-white' 
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${book.quantity > 0
+                                ? 'bg-emerald-500/90 text-white'
                                 : 'bg-rose-500/90 text-white'
-                        }`}>
+                            }`}>
                             {book.quantity > 0 ? 'Available' : 'Out of Stock'}
                         </span>
                     </div>
@@ -305,9 +304,8 @@ const LibraryBooks = () => {
 
                     {/* Description - from API */}
                     {book.description && (
-                        <div className={`mt-3 text-sm text-slate-600 dark:text-slate-400 transition-all duration-300 ${
-                            showDetails ? 'line-clamp-none' : 'line-clamp-2'
-                        }`}>
+                        <div className={`mt-3 text-sm text-slate-600 dark:text-slate-400 transition-all duration-300 ${showDetails ? 'line-clamp-none' : 'line-clamp-2'
+                            }`}>
                             {book.description}
                         </div>
                     )}
@@ -363,7 +361,7 @@ const LibraryBooks = () => {
                         </div>
                     )}
                 </div>
-                
+
                 <div className="flex-1">
                     <div className="flex justify-between items-start">
                         <div>
@@ -382,13 +380,13 @@ const LibraryBooks = () => {
                             </button>
                         </div>
                     </div>
-                    
+
                     {book.description && (
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
                             {book.description}
                         </p>
                     )}
-                    
+
                     <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1"><TagIcon className="w-3 h-3" />{book.category}</span>
                         <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" />{book.publishYear}</span>
@@ -417,7 +415,7 @@ const LibraryBooks = () => {
                             {filteredBooks.length} books found • {uniqueCategories} categories
                         </p>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                         {/* Library Selector */}
                         <div className="relative flex-1 lg:flex-none min-w-[200px]">
@@ -438,21 +436,19 @@ const LibraryBooks = () => {
                         <div className="flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`p-2 rounded-lg transition-all ${
-                                    viewMode === 'grid' 
-                                        ? 'bg-indigo-600 text-white' 
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
+                                        ? 'bg-indigo-600 text-white'
                                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
+                                    }`}
                             >
                                 <ViewColumnsIcon className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-2 rounded-lg transition-all ${
-                                    viewMode === 'list' 
-                                        ? 'bg-indigo-600 text-white' 
+                                className={`p-2 rounded-lg transition-all ${viewMode === 'list'
+                                        ? 'bg-indigo-600 text-white'
                                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
+                                    }`}
                             >
                                 <DocumentTextIcon className="w-5 h-5" />
                             </button>
@@ -484,13 +480,13 @@ const LibraryBooks = () => {
                 <div className="mb-8 space-y-4">
                     <div className="flex flex-wrap gap-4">
                         <div className="flex-1 min-w-[300px]">
-                            <SearchBar 
-                                onSearch={setSearchTerm} 
-                                placeholder="Search by title, author, ISBN, description..." 
+                            <SearchBar
+                                onSearch={setSearchTerm}
+                                placeholder="Search by title, author, ISBN, description..."
                                 className="w-full"
                             />
                         </div>
-                        
+
                         <div className="flex gap-2">
                             <select
                                 value={selectedCategory}
@@ -528,7 +524,7 @@ const LibraryBooks = () => {
                         </p>
                     </div>
                 )}
-                
+
                 {booksLoading ? (
                     <div className="flex items-center justify-center py-20">
                         <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
@@ -565,21 +561,20 @@ const LibraryBooks = () => {
                                 >
                                     <ChevronLeftIcon className="w-5 h-5" />
                                 </button>
-                                
+
                                 {[...Array(totalPages)].map((_, i) => (
                                     <button
                                         key={i + 1}
                                         onClick={() => setCurrentPage(i + 1)}
-                                        className={`w-10 h-10 rounded-lg font-medium transition-all ${
-                                            currentPage === i + 1
+                                        className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === i + 1
                                                 ? 'bg-indigo-600 text-white'
                                                 : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
-                                        }`}
+                                            }`}
                                     >
                                         {i + 1}
                                     </button>
                                 ))}
-                                
+
                                 <button
                                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                     disabled={currentPage === totalPages}

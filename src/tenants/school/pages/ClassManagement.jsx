@@ -195,6 +195,15 @@ const ClassManagement = () => {
             alert(err?.data?.message || 'Something went wrong');
         }
     };
+
+    const classFieldConfig = {
+        name: { type: "text", label: "Class Name", tab: "basic" },
+        section: { type: "text", label: "Section", tab: "basic" },
+        academicYear: { type: "text", label: "Academic Year", tab: "academic" },
+        description: { type: "textarea", label: "Description", tab: "basic" },
+        classTeacher: { type: "text", label: "Class Teacher", tab: "academic" },
+        capacity: { type: "number", label: "Capacity", tab: "academic" },
+    };
     // Card fields configuration with safe rendering
     const cardFields = [
         {
@@ -488,7 +497,9 @@ const ClassManagement = () => {
                     onSubmit={handleSubmit}
                     initialData={selectedClass}
                     isLoading={isCreating || isUpdating}
-                    type="class"
+                    fields={classFieldConfig}
+                    type="Class"
+
                 />
             </div>
         </div>
