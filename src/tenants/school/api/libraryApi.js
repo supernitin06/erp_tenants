@@ -61,7 +61,7 @@ export const libraryApi = apiSlice.injectEndpoints({
         }),
         addBook: builder.mutation({
             query: ({ tenantName, libraryId, data }) => ({
-                url: `tenant/${tenantName}/libraries/${libraryId}/books`,
+                url: `tenant/${tenantName}/libraries/books`,
                 method: 'POST',
                 body: data,
             }),

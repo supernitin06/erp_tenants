@@ -12,10 +12,10 @@ import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
 import StatsCard from '../../../common/components/ui/StatsCard';
 import SearchAndFilter from '../../../common/components/ui/SearchAndFilter';
-
-import { 
-    PlusIcon, 
-    UsersIcon, 
+import Button from '../../../common/components/ui/Button';
+import {
+    PlusIcon,
+    UsersIcon,
     AcademicCapIcon,
     UserGroupIcon,
     ChartBarIcon,
@@ -60,10 +60,10 @@ const Student = () => {
 
     // Debugging: Log data to console to verify API response
     useEffect(() => {
-        console.log("Student Page - Tenant:", tenantName);
-        console.log("Student Page - Data:", studentsData);
-        console.log("Student Page - Classes Data:", classesData);
-        console.log("Student Page - Error:", error);
+        // console.log("Student Page - Tenant:", tenantName);
+        // console.log("Student Page - Data:", studentsData);
+        // console.log("Student Page - Classes Data:", classesData);
+        // console.log("Student Page - Error:", error);
     }, [tenantName, studentsData, classesData, error]);
 
     const students = useMemo(() => {
@@ -72,7 +72,7 @@ const Student = () => {
         if (Array.isArray(studentsData)) data = studentsData;
         else if (Array.isArray(studentsData.students)) data = studentsData.students;
         else if (Array.isArray(studentsData.data)) data = studentsData.data;
-        
+
         // Ensure we only return valid objects
         return data.filter(item => item && typeof item === 'object');
     }, [studentsData]);
@@ -84,7 +84,7 @@ const Student = () => {
         if (Array.isArray(classesData)) data = classesData;
         else if (Array.isArray(classesData.classes)) data = classesData.classes;
         else if (Array.isArray(classesData.data)) data = classesData.data;
-        
+
         // Ensure we only return valid objects with required fields
         return data.filter(item => item && typeof item === 'object' && (item.id || item._id));
     }, [classesData]);
@@ -124,10 +124,10 @@ const Student = () => {
         studentId: { label: 'Student ID', type: 'text', icon: IdentificationIcon, tab: 'student', required: true },
         email: { label: 'Email', type: 'email', icon: EnvelopeIcon, tab: 'student', placeholder: 'student@example.com' },
         phone: { label: 'Phone', type: 'tel', icon: PhoneIcon, tab: 'student', placeholder: '+1 (555) 123-4567' },
-        gender: { 
-            label: 'Gender', 
-            type: 'select', 
-            icon: UsersIcon, 
+        gender: {
+            label: 'Gender',
+            type: 'select',
+            icon: UsersIcon,
             tab: 'student',
             options: [
                
@@ -181,27 +181,27 @@ const Student = () => {
     // Filter students based on search, gender, and class
     const filteredStudents = useMemo(() => {
         return students.filter(student => {
-            const matchesSearch = searchTerm === '' || 
+            const matchesSearch = searchTerm === '' ||
                 student.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 student.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
-            
+
             const matchesGender = filters.gender === 'all' || student.gender?.toLowerCase() === filters.gender.toLowerCase();
             const matchesClass = filters.class === 'all' || student.classId === filters.class;
-            
+
             return matchesSearch && matchesGender && matchesClass;
         });
     }, [students, searchTerm, filters]);
 
     const totalStudents = useMemo(() => (studentsData?.count || students.length || 0), [studentsData, students]);
-    
+
     // Calculate statistics
     const stats = useMemo(() => {
         const male = students.filter(s => s.gender?.toLowerCase() === 'male').length;
         const female = students.filter(s => s.gender?.toLowerCase() === 'female').length;
         const other = students.filter(s => s.gender && !['male', 'female'].includes(s.gender?.toLowerCase())).length;
-        
+
         return { male, female, other };
     }, [students]);
 
@@ -243,24 +243,24 @@ const Student = () => {
             // Validate required fields
             const requiredFields = ['firstName', 'lastName', 'studentId'];
             const missingFields = requiredFields.filter(field => !formData[field]?.trim());
-            
+
             if (missingFields.length > 0) {
                 alert(`Please fill in the following required fields: ${missingFields.join(', ')}`);
                 return;
             }
-            
+
             // Validate email format if provided
             if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
                 alert('Please enter a valid email address');
                 return;
             }
-            
+
             // Validate phone format if provided (basic validation)
             if (formData.phone && !/^[+]?[\d\s\-\(\)]+$/.test(formData.phone)) {
                 alert('Please enter a valid phone number');
                 return;
             }
-            
+
             // Prepare request body
             const requestBody = {
                 // Ensure required fields are properly formatted
@@ -277,7 +277,7 @@ const Student = () => {
                 parentName: formData.parentName?.trim() || '',
                 parentPhone: formData.parentPhone?.trim() || '',
             };
-            
+
             if (selectedStudent) {
                 await updateStudent({
                     tenantName,
@@ -328,13 +328,21 @@ const Student = () => {
                             </div>
                         </div>
 
-                        <button
-                            onClick={handleCreate}
-                            className="group w-full sm:w-auto flex justify-center items-center px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-2xl font-semibold transition-all duration-300 shadow-lg shadow-cyan-600/30 hover:shadow-xl hover:shadow-cyan-600/40 active:scale-95"
-                        >
-                            <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
-                            Add New Student
-                        </button>
+                        {/* <button
+                                onClick={handleCreate}
+                                className="group w-full sm:w-auto flex justify-center items-center px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-2xl font-semibold transition-all duration-300 shadow-lg shadow-cyan-600/30 hover:shadow-xl hover:shadow-cyan-600/40 active:scale-95"
+                            >
+                                <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+                                Add New Student
+                            </button> */}
+                        <Button
+                            handleCreate={handleCreate}
+                            className="group w-full sm:w-auto flex justify-center items-center px-6 py-3
+                             bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500
+                              text-white rounded-2xl font-semibold transition-all duration-300 shadow-lg
+                               shadow-cyan-600/30 hover:shadow-xl hover:shadow-cyan-600/40 active:scale-95"
+                            label="Add New Student"
+                        />
                     </div>
                 </div>
 
