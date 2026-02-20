@@ -197,7 +197,6 @@ const ClassManagement = () => {
         }
     };
 
-<<<<<<< HEAD
     const classFieldConfig = {
         name: { type: "text", label: "Class Name", tab: "basic" },
         section: { type: "text", label: "Section", tab: "basic" },
@@ -206,8 +205,7 @@ const ClassManagement = () => {
         classTeacher: { type: "text", label: "Class Teacher", tab: "academic" },
         capacity: { type: "number", label: "Capacity", tab: "academic" },
     };
-=======
->>>>>>> main
+
     // Card fields configuration with safe rendering
     const cardFields = [
         {
