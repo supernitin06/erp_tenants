@@ -218,9 +218,9 @@ const LibraryBooks = () => {
             >
                 {/* Image Container */}
                 <div className="relative h-56 overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-800">
-                    {book.coverImage || book.image ? (
+                    {book.coverImageUrl || book.image ? (
                         <img 
-                            src={book.coverImage || book.image} 
+                            src={book.coverImageUrl || book.image} 
                             alt={book.title}
                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                         />

@@ -94,7 +94,9 @@ const Student = () => {
         { key: 'fullName', header: 'Full Name', isSecondary: true, className: 'text-slate-900 dark:text-white font-medium whitespace-nowrap', render: item => `${item.firstName} ${item.lastName}` },
         { key: 'email', header: 'Email' },
         { key: 'phone', header: 'Phone', className: 'text-slate-500 dark:text-slate-400 whitespace-nowrap' },
+           { key: 'class', header: 'Class', isSecondary: true, className: 'text-slate-900 dark:text-white font-medium whitespace-nowrap', render: item => item.class?.name || 'N/A' },
         { key: 'gender', header: 'Gender', className: 'text-slate-500 dark:text-slate-400' },
+
         {
             key: 'isActive', header: 'Status', render: item => (
                 <span className={`inline-flex px-3 py-1 text-[11px] uppercase tracking-wider rounded-full font-bold ${item.isActive ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
@@ -104,6 +106,17 @@ const Student = () => {
             )
         },
     ], []);
+
+    // Transform classes data for form dropdown
+    const classOptions = useMemo(() => {
+        return [
+          
+            ...classes.map(cls => ({
+                value: cls.id || cls._id,
+                label: cls.name || cls.className || 'Unknown Class'
+            }))
+        ];
+    }, [classes]);
 
     const studentFields = {
         firstName: { label: 'First Name', type: 'text', icon: UsersIcon, tab: 'student', required: true },
@@ -117,7 +130,7 @@ const Student = () => {
             icon: UsersIcon,
             tab: 'student',
             options: [
-                { value: '', label: 'Select Gender' },
+               
                 { value: 'MALE', label: 'Male' },
                 { value: 'FEMALE', label: 'Female' },
                 { value: 'OTHER', label: 'Other' }
@@ -125,7 +138,13 @@ const Student = () => {
         },
         dateOfBirth: { label: 'Date of Birth', type: 'date', icon: CalendarIcon, tab: 'student' },
         address: { label: 'Address', type: 'textarea', icon: MapPinIcon, tab: 'student', rows: 3 },
-        classId: { label: 'Class', type: 'text', icon: AcademicCapIcon, tab: 'student', placeholder: 'e.g., 10th Grade' },
+        classId: { 
+            label: 'Class', 
+            type: 'select', 
+            icon: AcademicCapIcon, 
+            tab: 'student',
+            options: classOptions
+        },
         parentName: { label: 'Parent Name', type: 'text', icon: UsersIcon, tab: 'student', placeholder: 'Parent/Guardian full name' },
         parentPhone: { label: 'Parent Phone', type: 'tel', icon: PhoneIcon, tab: 'student', placeholder: '+1 (555) 987-6543' },
     };

@@ -66,7 +66,7 @@ const SearchAndFilter = ({
               className="px-4 py-2.5 bg-white dark:bg-slate-900 border dark:text-white border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none transition-all min-w-[150px]"
               disabled={loading}
             >
-              <option value="">{option.placeholder}</option>
+             
               {option.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
