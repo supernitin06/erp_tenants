@@ -49,6 +49,7 @@ import Form from '../../../common/components/ui/Form';
 import Table from '../../../common/components/ui/Table';
 import StatsCard from '../../../common/components/ui/StatsCard';
 import SearchBar from '../../../common/components/ui/SearchBar';
+import Button from '../../../common/components/ui/Button';
 
 const Library = () => {
     const { tenantName, libraryId } = useParams();
@@ -414,7 +415,7 @@ const Library = () => {
                                 </div>
                             </div>
 
-                            <button
+                            {/* <button
                                 onClick={selectedView === 'libraries' ? handleAddLibrary : handleAddBook}
                                 className="group relative inline-flex items-center justify-center px-6 py-3 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-lg shadow-indigo-600/30 hover:shadow-xl hover:shadow-purple-600/40 transition-all duration-300"
                             >
@@ -423,7 +424,30 @@ const Library = () => {
                                 <span className="relative z-10">
                                     {selectedView === 'libraries' ? 'Add Library' : 'Add Book'}
                                 </span>
-                            </button>
+                            </button> */}
+                            <div
+                                className="relative group inline-block"
+                                title={
+                                    selectedView === 'libraries' && libraries.length >= 1
+                                        ? "You can't create more than one library."
+                                        : ""
+                                }
+                            >
+
+                                <Button
+                                    handleCreate={selectedView === 'libraries' ? handleAddLibrary : handleAddBook}
+                                    disabled={selectedView === 'libraries' && libraries.length >= 1}
+                                    className={`group relative inline-flex items-center justify-center px-6 py-3 overflow-hidden rounded-xl 
+    bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium shadow-lg transition-all duration-300
+    ${selectedView === 'libraries' && libraries.length >= 1
+                                            ? 'opacity-50 cursor-not-allowed shadow-none'
+                                            : 'shadow-indigo-600/30 hover:shadow-xl hover:shadow-purple-600/40'
+                                        }`}
+                                    label={selectedView === 'libraries' ? 'New Library' : 'New Book'}
+                                    icon={<PlusIcon className="h-5 w-5 mr-2 stroke-2" />}
+                                />
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -623,7 +647,7 @@ const Library = () => {
                 title={modalType === 'library' ? 'Library' : 'Book'}
                 fields={modalType === 'library' ? libraryFields : bookFields}
             />
-        </div>
+        </div >
     );
 };
 
