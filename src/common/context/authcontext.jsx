@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { setAuthToken } from '../../api/config';
 import { useDispatch } from 'react-redux';
 import { authApi } from '../../api/services/authapi';
 import { apiSlice } from '../../api/apiSlice';
@@ -53,6 +54,7 @@ export const AuthProvider = ({ children }) => {
         }
         if (result.error?.status === 401 || result.error?.status === 403) {
             storeUser(null);
+            setAuthToken(null);
         }
         return null;
     }, [dispatch, storeUser]);
@@ -69,8 +71,10 @@ export const AuthProvider = ({ children }) => {
         return () => window.removeEventListener('focus', onFocus);
     }, [refreshSession]);
 
+    // Accepts the login response ({ user, token }) or just the session user
     const login = useCallback((sessionUser) => {
         const u = sessionUser?.user || sessionUser;
+        if (sessionUser?.token) setAuthToken(sessionUser.token);
         storeUser(u);
     }, [storeUser]);
 
@@ -87,6 +91,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = useCallback(async () => {
         storeUser(null);
+        setAuthToken(null);
         try {
             await dispatch(authApi.endpoints.logout.initiate()).unwrap();
         } catch {

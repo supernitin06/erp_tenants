@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL, getAuthToken } from '../../api/config';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/authcontext';
 import { useLogoutMutation } from '../../api/services/authapi';
@@ -101,9 +102,13 @@ const PaymentPage = () => {
         setLoading(true);
         const toastId = toast.loading('Activating tenant subscription...', { id: 'activate-sub' });
         try {
-            const response = await fetch('/api/v1/subscription-payment/activate', {
+            const token = getAuthToken();
+            const response = await fetch(`${API_BASE_URL}/subscription-payment/activate`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 credentials: 'include',
                 body: JSON.stringify({
                     planId: plan.id,
@@ -157,9 +162,9 @@ const PaymentPage = () => {
         setLoading(true);
         const toastId = toast.loading("Creating payment order...");
         try {
-            const orderResponse = await fetch('/api/v1/subscription-payment/create-order', {
+            const orderResponse = await fetch(`${API_BASE_URL}/subscription-payment/create-order`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}) },
                 credentials: 'include',
                 body: JSON.stringify({ planId: plan.id })
             });
@@ -177,9 +182,9 @@ const PaymentPage = () => {
                 handler: async function (response) {
                     setVerifying(true);
                     try {
-                        const verifyResponse = await fetch('/api/v1/subscription-payment/verify', {
+                        const verifyResponse = await fetch(`${API_BASE_URL}/subscription-payment/verify`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}) },
                             credentials: 'include',
                             body: JSON.stringify({
                                 razorpay_payment_id: response.razorpay_payment_id,

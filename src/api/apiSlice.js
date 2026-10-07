@@ -1,11 +1,16 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import toast from 'react-hot-toast';
+import { API_BASE_URL, getAuthToken } from './config';
 
-// VITE_API_BASE_URL lets production point at the deployed backend;
-// in development the Vite proxy forwards /api to localhost:5000.
+// Backend URL comes from api/config.js (Render in production, .env locally)
 const baseQuery = fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+    baseUrl: API_BASE_URL,
     credentials: 'include',
+    prepareHeaders: (headers) => {
+        const token = getAuthToken();
+        if (token) headers.set('authorization', `Bearer ${token}`);
+        return headers;
+    },
 });
 
 const baseQueryWithToast = async (args, api, extraOptions) => {

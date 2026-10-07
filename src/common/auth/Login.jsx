@@ -44,7 +44,7 @@ const Login = () => {
             const response = await loginApi({ tenantUsername: tenantUsername.trim(), password }).unwrap();
 
             // `user` is the session object (incl. permissions) shared with GET /auth/me
-            setAuthContext(response.user);
+            setAuthContext(response); // stores the session user and its token
             navigate(`/${response.user.tenantUsername}`);
         } catch (error) {
             // the API layer already shows the server's error message as a toast
