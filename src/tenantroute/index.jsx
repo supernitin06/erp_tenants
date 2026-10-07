@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import Layout from '../common/layout/Layout';
-import ProtectedRoute from '../common/components/ProtectedRoute';
+import ProtectedRoute, { RequirePermission } from '../common/components/ProtectedRoute';
+import RolesPermissions from '../common/pages/admin/RolesPermissions';
+import PeopleManager from '../common/pages/admin/PeopleManager';
 import Login from '../common/auth/Login';
 import Dashboard from '../common/pages/Dashboard';
 import schoolRoutes from '../tenants/school/schoolroute';
@@ -46,6 +48,20 @@ const router = createBrowserRouter([
                     {
                         path: 'plan-history',
                         element: <PlanHistory />,
+                    },
+
+                    // Organisation administration
+                    {
+                        path: 'admin/users',
+                        element: <RequirePermission permission="USER_READ"><PeopleManager kind="user" /></RequirePermission>,
+                    },
+                    {
+                        path: 'admin/staff',
+                        element: <RequirePermission permission="VIEW_TENANT_STAFF"><PeopleManager kind="staff" /></RequirePermission>,
+                    },
+                    {
+                        path: 'admin/roles',
+                        element: <RequirePermission permission="VIEW_TENANT_ROLES"><RolesPermissions /></RequirePermission>,
                     },
 
                     {

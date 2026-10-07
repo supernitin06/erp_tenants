@@ -1,8 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import toast from 'react-hot-toast';
 
+// VITE_API_BASE_URL lets production point at the deployed backend;
+// in development the Vite proxy forwards /api to localhost:5000.
 const baseQuery = fetchBaseQuery({
-    baseUrl: 'https://multitenant-uv76.onrender.com/api/v1',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || '/api/v1',
     credentials: 'include',
 });
 
@@ -13,6 +15,8 @@ const baseQueryWithToast = async (args, api, extraOptions) => {
 
     const method = args.method || 'GET';
     const isMutation = method !== 'GET';
+    // Session checks must stay silent (a 401 there just means "not logged in")
+    const silent = args.url === 'auth/me' || api.endpoint === 'verifySession';
 
     let toastId;
     if (isMutation) {
@@ -31,7 +35,7 @@ const baseQueryWithToast = async (args, api, extraOptions) => {
 
             if (isMutation) {
                 toast.error(errorMessage, { id: toastId });
-            } else {
+            } else if (!silent) {
                 toast.error(errorMessage);
             }
         } else if (isMutation) {
@@ -55,6 +59,6 @@ const baseQueryWithToast = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithToast,
-    tagTypes: ['User', 'Domain', 'Sidebar', 'Students', 'Teachers', 'Examination', 'Class', 'Library', 'Books'],
+    tagTypes: ['User', 'Domain', 'Sidebar', 'Students', 'Teachers', 'Examination', 'Class', 'Library', 'Books', 'Subscription', 'TenantRoles', 'TenantPermissions', 'TenantStaff', 'TenantUsers'],
     endpoints: (builder) => ({}),
 });

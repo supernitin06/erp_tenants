@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/authcontext';
 import { useGetSubscriptionHistoryQuery } from '../../api/services/planapi'; // adjust path
 
-const PlanHistory = ({ tenantId }) => {
+const PlanHistory = () => {
     const { tenantName } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
-    // Fetch history from API
-    const { data: history = [], isLoading, isError } = useGetSubscriptionHistoryQuery(tenantId || user?.id);
+    const { tenantSlug } = useAuth();
+    // History of the logged-in organisation
+    const { data: history = [], isLoading, isError } = useGetSubscriptionHistoryQuery(tenantName || tenantSlug, { skip: !(tenantName || tenantSlug) });
 
     if (isLoading) return <div className="text-center text-white py-20">Loading subscription history...</div>;
     if (isError) return <div className="text-center text-red-500 py-20">Failed to load subscription history.</div>;

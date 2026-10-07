@@ -2,9 +2,18 @@ import { apiSlice } from '../apiSlice';
 
 export const authApi = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        // Organisation admin: { tenantUsername, password }
         login: builder.mutation({
             query: (credentials) => ({
                 url: 'auth/tenant/login',
+                method: 'POST',
+                body: credentials,
+            }),
+        }),
+        // Staff member or user of an organisation: { tenantSlug, email, password }
+        memberLogin: builder.mutation({
+            query: ({ tenantSlug, ...credentials }) => ({
+                url: `tenant/${encodeURIComponent(tenantSlug)}/login`,
                 method: 'POST',
                 body: credentials,
             }),
@@ -18,17 +27,17 @@ export const authApi = apiSlice.injectEndpoints({
         }),
         verifySession: builder.query({
             query: () => ({
-                url: 'auth/tenant/me',
+                url: 'auth/me',
                 method: 'GET',
             }),
         }),
         logout: builder.mutation({
             query: () => ({
-                url: 'auth/tenant/logout',
+                url: 'auth/logout',
                 method: 'POST',
             }),
         }),
     }),
 });
 
-export const { useLoginMutation, useRegisterTenantMutation, useVerifySessionQuery, useLogoutMutation } = authApi;
+export const { useLoginMutation, useMemberLoginMutation, useRegisterTenantMutation, useVerifySessionQuery, useLogoutMutation } = authApi;

@@ -13,14 +13,10 @@ const Login = () => {
     const { login: setAuthContext, user, loading } = useAuth();
     const [loginApi, { isLoading }] = useLoginMutation();
 
+    // Already logged in → go to the organisation home (ProtectedRoute handles the no-plan case)
     useEffect(() => {
         if (!loading && user) {
-            const tenantPath = user.tenantUsername;
-            if (user.subscription_planId && user.isActive) {
-                navigate(`/${tenantPath}`, { replace: true });
-            } else {
-                navigate(`/${tenantPath}/pricing`, { replace: true });
-            }
+            navigate(`/${user.tenantUsername || user.tenantName}`, { replace: true });
         }
     }, [user, loading, navigate]);
 
@@ -45,27 +41,14 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            const response = await loginApi({ tenantUsername, password }).unwrap();
+            const response = await loginApi({ tenantUsername: tenantUsername.trim(), password }).unwrap();
 
-            const { token, tenant } = response;
-
-            setAuthContext({
-                user: tenant,
-                token: token,
-                tenantName: tenant.tenantUsername,
-                planId: tenant.subscription_planId
-            });
-
-            const tenantPath = tenant.tenantUsername;
-
-            if (tenant.subscription_planId && tenant.isActive) {
-                navigate(`/${tenantPath}`);
-            } else {
-                navigate(`/${tenantPath}/pricing`);
-            }
+            // `user` is the session object (incl. permissions) shared with GET /auth/me
+            setAuthContext(response.user);
+            navigate(`/${response.user.tenantUsername}`);
         } catch (error) {
+            // the API layer already shows the server's error message as a toast
             console.error('Login failed:', error);
-            alert(error?.data?.message || 'Login failed. Please check your credentials.');
         }
     };
 

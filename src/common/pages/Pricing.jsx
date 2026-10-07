@@ -22,7 +22,7 @@ import { FiPackage, FiZap } from 'react-icons/fi';
 const Pricing = () => {
     const { tenantName } = useParams();
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const { data, isLoading, isError } = useGetSubscriptionPlansQuery();
     const plans = data?.plans || [];
     const [selectedPlanFeatures, setSelectedPlanFeatures] = useState(null);
@@ -181,14 +181,22 @@ const Pricing = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-7xl mx-auto relative"
             >
-                {/* Logout Button */}
-                <div className="absolute top-0 right-0 z-50">
+                {/* Header Actions */}
+                <div className="absolute top-0 right-0 z-50 flex items-center gap-3">
+                    {user?.isActive && user?.subscription_planId && (
+                        <button
+                            onClick={() => navigate(`/${tenantName || user?.tenantUsername}`)}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm text-blue-600 rounded-full font-medium shadow-sm border border-blue-200 hover:bg-blue-50 transition-all cursor-pointer"
+                        >
+                            ← Go to Dashboard
+                        </button>
+                    )}
                     <button
                         onClick={() => {
                             logout();
                             navigate('/login');
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm text-red-500 rounded-full font-medium shadow-sm border border-red-100 hover:bg-red-50 transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm text-red-500 rounded-full font-medium shadow-sm border border-red-100 hover:bg-red-50 transition-all cursor-pointer"
                     >
                         <HiOutlineLogout className="w-5 h-5" />
                         Logout
@@ -227,6 +235,10 @@ const Pricing = () => {
                     {plans.map((plan, index) => {
                         const style = cardStyles[index % cardStyles.length];
                         const planFeatures = getPlanFeatures(plan);
+                        const isCurrentPlan = !!user?.isActive && (
+                            plan.id === user?.subscription_planId ||
+                            plan.name?.toLowerCase() === (user?.planName || user?.subscription_plan?.name)?.toLowerCase()
+                        );
 
                         return (
                             <motion.div
@@ -240,23 +252,40 @@ const Pricing = () => {
                                 <div className={`absolute -inset-0.5 bg-gradient-to-r ${style.gradient} rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-300`}></div>
 
                                 {/* Card */}
-                                <div className={`relative bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border ${style.border} ${style.shadow} ${plan.recommended ? 'scale-105 z-10 ring-4 ring-blue-400/20' : ''}`}>
+                                <div className={`relative bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border ${
+                                    isCurrentPlan ? 'ring-4 ring-emerald-500/50 border-emerald-500 shadow-emerald-200/50 scale-102' : style.border
+                                } ${style.shadow} ${plan.recommended && !isCurrentPlan ? 'scale-105 z-10 ring-4 ring-blue-400/20' : ''}`}>
 
-                                    {plan.recommended && (
+                                    {/* Active Plan or Most Popular Badge */}
+                                    {isCurrentPlan ? (
+                                        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-20">
+                                            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-black uppercase tracking-wider px-5 py-2 rounded-full shadow-lg shadow-emerald-500/30 flex items-center gap-2 whitespace-nowrap border border-emerald-300/40">
+                                                <HiOutlineCheckCircle className="w-4 h-4 text-white" />
+                                                ✓ Current Active Plan
+                                            </div>
+                                        </div>
+                                    ) : plan.recommended ? (
                                         <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-20">
                                             <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-bold px-6 py-2 rounded-full shadow-lg flex items-center gap-2 whitespace-nowrap">
                                                 <HiOutlineStar className="w-4 h-4" />
                                                 Most Popular
                                             </div>
                                         </div>
-                                    )}
+                                    ) : null}
 
                                     {/* Card Header */}
                                     <div className="text-center mb-8">
                                         <div className={`w-20 h-20 ${style.light} rounded-2xl flex items-center justify-center mx-auto mb-4 text-${style.icon}`}>
                                             {getPlanIcon(index)}
                                         </div>
-                                        <h3 className="text-2xl font-bold text-slate-800 mb-2">{plan.name}</h3>
+                                        <h3 className="text-2xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-2">
+                                            <span>{plan.name}</span>
+                                            {isCurrentPlan && (
+                                                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                                    Active
+                                                </span>
+                                            )}
+                                        </h3>
                                         <div className="flex items-center justify-center gap-1">
                                             <span className="text-4xl font-black text-slate-800">₹{plan.price}</span>
                                             <span className="text-slate-400 text-sm">/{plan.duration} days</span>
@@ -294,16 +323,23 @@ const Pricing = () => {
                                     </div>
 
                                     {/* CTA Button */}
-                                    <button
-                                        onClick={() => handleSelectPlan(plan)}
-                                        className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${style.button} group/btn relative overflow-hidden`}
-                                    >
-                                        <span className="relative z-10 flex items-center justify-center gap-2">
-                                            Get Started
-                                            <HiOutlineArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                                        </span>
-                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform"></div>
-                                    </button>
+                                    {isCurrentPlan ? (
+                                        <div className="w-full py-4 rounded-xl font-bold text-emerald-700 bg-emerald-50 border-2 border-emerald-400 flex items-center justify-center gap-2 shadow-sm text-center">
+                                            <HiOutlineCheckCircle className="w-5 h-5 text-emerald-600" />
+                                            <span>Current Active Plan</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleSelectPlan(plan)}
+                                            className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${style.button} group/btn relative overflow-hidden cursor-pointer`}
+                                        >
+                                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                                {user?.isActive ? 'Switch to this Plan' : 'Get Started'}
+                                                <HiOutlineArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                            </span>
+                                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform"></div>
+                                        </button>
+                                    )}
 
                                     {/* Bottom decoration */}
                                     <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${style.gradient} rounded-b-3xl opacity-50`}></div>

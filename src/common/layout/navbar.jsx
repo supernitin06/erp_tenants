@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/authcontext';
+import { useGetSubscriptionPlansQuery } from '../../api/services/planapi';
 import {
     BellIcon,
     UserCircleIcon,
@@ -19,12 +21,26 @@ import {
     MoonIcon,
     ComputerDesktopIcon,
     SparklesIcon,
-    ChevronDownIcon
+    ChevronDownIcon,
+    CheckBadgeIcon
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 
 const Navbar = ({ onMenuClick }) => {
-    const { user, logout } = useAuth();
+    const { user, logout, tenantSlug } = useAuth();
+    const { data: plansData } = useGetSubscriptionPlansQuery();
+    const plans = plansData?.plans || [];
+
+    const activePlan = useMemo(() => {
+        if (user?.subscription_plan) return user.subscription_plan;
+        if (user?.subscription_planId && plans.length > 0) {
+            return plans.find(p => p.id === user.subscription_planId) || null;
+        }
+        return null;
+    }, [user, plans]);
+
+    const activePlanName = activePlan?.name || user?.planName || user?.tenant?.planName || (user?.isActive ? 'Active Plan' : null);
+
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isThemeOpen, setIsThemeOpen] = useState(false);
@@ -452,6 +468,21 @@ const Navbar = ({ onMenuClick }) => {
                         )}
                     </div>
 
+                    {/* Active Plan Pill in Navbar */}
+                    {activePlanName && (
+                        <Link
+                            to={`/${tenantSlug || user?.tenantUsername || 'jbm'}/pricing`}
+                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-200/60 dark:border-violet-500/30 text-violet-700 dark:text-violet-300 transition-all shadow-sm group"
+                            title="Current Plan - Click to manage or upgrade"
+                        >
+                            <SparklesIcon className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform" />
+                            <span className="text-xs font-bold uppercase tracking-wide">
+                                {activePlanName}
+                            </span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        </Link>
+                    )}
+
                     <div className="h-8 w-[1px] bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-700 to-transparent hidden xs:block" />
 
                     {/* Profile Section */}
@@ -470,7 +501,7 @@ const Navbar = ({ onMenuClick }) => {
                                 </p>
                                 <p className="text-xs text-slate-500 dark:text-slate-500 flex items-center justify-end gap-1">
                                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                                    Administrator
+                                    {activePlanName || 'Administrator'}
                                 </p>
                             </div>
 
@@ -505,6 +536,30 @@ const Navbar = ({ onMenuClick }) => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Active Plan Badge in Dropdown */}
+                                {activePlanName && (
+                                    <div className="p-3 bg-violet-50/80 dark:bg-violet-950/40 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <SparklesIcon className="w-4 h-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                                            <div>
+                                                <div className="text-[10px] uppercase tracking-wider font-bold text-violet-700 dark:text-violet-300">
+                                                    Current Plan
+                                                </div>
+                                                <div className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[130px]">
+                                                    {activePlanName}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Link
+                                            to={`/${tenantSlug || user?.tenantUsername || 'jbm'}/pricing`}
+                                            onClick={() => setIsProfileOpen(false)}
+                                            className="text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 underline"
+                                        >
+                                            Upgrade →
+                                        </Link>
+                                    </div>
+                                )}
 
                                 {/* Menu items */}
                                 <div className="p-2">

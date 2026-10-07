@@ -11,8 +11,9 @@ export const subscriptionApi = apiSlice.injectEndpoints({
     }),
 
     // Get subscription history for a tenant
+    // Plan history of the logged-in tenant (tenantSlug = tenant username in the URL)
     getSubscriptionHistory: builder.query({
-      query: (tenantId) => `tenant/sps/${tenantId}/plan-history`,
+      query: (tenantSlug) => `tenant/${tenantSlug}/plan/history`,
       providesTags: ['Subscription'],
       transformResponse: (res) => {
         const history = res?.tenantPlanHistory || (Array.isArray(res) ? res : res?.history || res?.data || []);

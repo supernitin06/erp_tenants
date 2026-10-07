@@ -5,13 +5,13 @@ export const examApi = apiSlice.injectEndpoints({
 
         //  Get All Examinations
         // getExaminations: builder.query({
-        //     query: (tenantName) => `tenant/${tenantName}/examination-portal`,
+        //     query: (tenantName) => `tenant/${tenantName}/exam`,
         //     providesTags: ['Examination'],
         //     transformResponse: (response) =>  response?.data || [],
         // }),
         getExaminations: builder.query({
             query: ({ tenantName, classId }) => ({
-                url: `tenant/${tenantName}/examination-portal/class/${classId}`,
+                url: `tenant/${tenantName}/exam/class/${classId}`,
                 providesTags: ['Examination'],
             })
         }),
@@ -19,7 +19,7 @@ export const examApi = apiSlice.injectEndpoints({
         //  Create Examination
         createExamination: builder.mutation({
             query: ({ tenantName, data }) => ({
-                url: `tenant/${tenantName}/examination-portal`,
+                url: `tenant/${tenantName}/exam`,
                 method: 'POST',
                 body: data,
             }),
@@ -29,7 +29,7 @@ export const examApi = apiSlice.injectEndpoints({
         // Update Examination
         updateExamination: builder.mutation({
             query: ({ tenantName, id, data }) => ({
-                url: `tenant/${tenantName}/examination-portal/${id}`,
+                url: `tenant/${tenantName}/exam/${id}`,
                 method: 'PUT',
                 body: data,
             }),
@@ -39,7 +39,7 @@ export const examApi = apiSlice.injectEndpoints({
         // Delete Examination
         deleteExamination: builder.mutation({
             query: ({ tenantName, id }) => ({
-                url: `tenant/${tenantName}/examination-portal/${id}`,
+                url: `tenant/${tenantName}/exam/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Examination'],
@@ -53,7 +53,7 @@ export const examApi = apiSlice.injectEndpoints({
 
         createExamSchedule: builder.mutation({
             query: ({ tenantName, data }) => ({
-                url: `tenant/${tenantName}/examination-portal/schedule`,
+                url: `tenant/${tenantName}/exam/schedule`,
                 method: 'POST',
                 body: data,
             }),
@@ -63,14 +63,14 @@ export const examApi = apiSlice.injectEndpoints({
 
         getDatesheet: builder.query({
             query: ({ tenantName, examinationId }) => ({
-                url: `tenant/${tenantName}/examination-portal/${examinationId}/datesheet`,
+                url: `tenant/${tenantName}/exam/${examinationId}/datesheet`,
             }),
             providesTags: ['Examination'],
         }),
 
         updateExamSchedule: builder.mutation({
             query: ({ tenantName, id, data }) => ({
-                url: `tenant/${tenantName}/examination-portal/schedule/${id}`,
+                url: `tenant/${tenantName}/exam/schedule/${id}`,
                 method: 'PUT',
                 body: data,
             }),
@@ -79,7 +79,7 @@ export const examApi = apiSlice.injectEndpoints({
 
         deleteExamSchedule: builder.mutation({
             query: ({ tenantName, id }) => ({
-                url: `tenant/${tenantName}/examination-portal/schedule/${id}`,
+                url: `tenant/${tenantName}/exam/schedule/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Examination'],

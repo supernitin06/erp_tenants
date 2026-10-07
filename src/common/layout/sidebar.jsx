@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { NavLink, Link, useParams } from 'react-router-dom';
 import {
     Squares2X2Icon,
     AcademicCapIcon,
-    Cog6ToothIcon,
-    ChevronDownIcon,
+        ChevronDownIcon,
     ChevronRightIcon,
     BuildingOfficeIcon,
     XMarkIcon,
@@ -18,28 +17,60 @@ import {
     SparklesIcon,
     BeakerIcon,
     HeartIcon,
-    CalendarIcon
+    CalendarIcon,
+    UsersIcon,
+    IdentificationIcon,
+    ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import { useGetdomainQuery } from '../../api/services/domainapi';
+import { useGetSubscriptionPlansQuery } from '../../api/services/planapi';
 import { useAuth } from '../context/authcontext';
+
+// Feature pages that are backed by a protected API → permission needed to see the link
+const FEATURE_PERMISSIONS = {
+    'student': 'READ_STUDENT',
+    'class-management': 'READ_CLASS',
+    'teacher': 'READ_TEACHER',
+    'exam-management': 'READ_EXAM',
+    'exam-datesheet': 'READ_EXAM_SCHEDULE',
+    'exam-schedule': 'READ_EXAM_SCHEDULE',
+    'exam-result': 'READ_EXAM',
+};
+
+// Organisation administration (available on every plan, shown by permission)
+const ADMIN_LINKS = [
+    { path: 'admin/users', label: 'Users', icon: UsersIcon, permission: 'USER_READ' },
+    { path: 'admin/staff', label: 'Staff', icon: IdentificationIcon, permission: 'VIEW_TENANT_STAFF' },
+    { path: 'admin/roles', label: 'Roles & Permissions', icon: ShieldCheckIcon, permission: 'VIEW_TENANT_ROLES' },
+];
 
 const Sidebar = ({ closeSidebar }) => {
     const { tenantName } = useParams();
-    const { planId, user } = useAuth();
-    const navigate = useNavigate();
-    const { data, isLoading } = useGetdomainQuery(planId);
+    const { user, hasPermission, tenantSlug } = useAuth();
     const [expandedDomains, setExpandedDomains] = useState({});
     const [hoveredDomain, setHoveredDomain] = useState(null);
 
-    // Ensure tenantName is defined before rendering links
-    const currentTenant = tenantName || user?.tenantUsername || '';
+    const { data: plansData } = useGetSubscriptionPlansQuery();
+    const plans = plansData?.plans || [];
 
-    useEffect(() => {
-        if (user && currentTenant && user.tenantUsername?.toLowerCase() !== currentTenant.toLowerCase()) {
-            console.warn(`Session mismatch: Logged in as ${user.tenantUsername} but visiting ${currentTenant}. Redirecting...`);
-            navigate(`/${user.tenantUsername}`, { replace: true });
+    const activePlan = useMemo(() => {
+        if (user?.subscription_plan) return user.subscription_plan;
+        if (user?.subscription_planId && plans.length > 0) {
+            return plans.find(p => p.id === user.subscription_planId) || null;
         }
-    }, [user, currentTenant, navigate]);
+        return null;
+    }, [user, plans]);
+
+    const activePlanName = activePlan?.name || user?.planName || user?.tenant?.planName || (user?.isActive ? 'Active Plan' : null);
+
+    // Ensure tenantName is defined before rendering links
+    const currentTenant = tenantName || tenantSlug || '';
+    // Always re-read the plan when the sidebar mounts, the tab regains focus or the plan changes,
+    // so domains / features added in the admin panel show up without logging in again
+    const { data, isLoading } = useGetdomainQuery(
+        { tenantSlug: currentTenant, planId: user?.subscription_planId },
+        { skip: !currentTenant, refetchOnMountOrArgChange: true, refetchOnFocus: true }
+    );
 
     const toggleDomain = (domainId) => {
         setExpandedDomains(prev => {
@@ -120,6 +151,23 @@ const Sidebar = ({ closeSidebar }) => {
         return featureName.toLowerCase().replace(/_/g, '-').replace(/\s+/g, '-');
     };
 
+    // Only show features the user's role can open; hide domains that end up empty
+    // (features or plan links switched off in the admin panel are hidden too)
+    const visibleDomains = useMemo(() => (data?.domains || [])
+        .filter((domain) => domain.isActive !== false)
+        .map((domain) => ({
+            ...domain,
+            features: (domain.features || []).filter((f) =>
+                f.isActive !== false &&
+                hasPermission(FEATURE_PERMISSIONS[getFeaturePath(f.feature_name)])
+            ),
+        }))
+        .filter((domain) => domain.features.length > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, hasPermission]);
+
+    const adminLinks = ADMIN_LINKS.filter((link) => hasPermission(link.permission));
+
     return (
         <div className="w-80 h-full bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col overflow-y-auto transition-all duration-300 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/30">
 
@@ -162,26 +210,24 @@ const Sidebar = ({ closeSidebar }) => {
                         }
                     `}
                 >
-                    {/* Animated background gradient */}
-                    <div className={`
-                        absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 
-                        transition-opacity duration-300 ${({ isActive }) => isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
-                    `}></div>
+                    {({ isActive }) => (
+                        <>
+                            {/* Animated background gradient */}
+                            <div className={`absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
 
-                    {/* Active indicator */}
-                    {({ isActive }) => isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full"></div>
+                            {/* Active indicator */}
+                            {isActive && (
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full"></div>
+                            )}
+
+                            <Squares2X2Icon className={`w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${isActive ? 'text-blue-500' : ''}`} />
+
+                            <span className="font-medium relative z-10">Dashboard</span>
+
+                            {/* Sparkle effect on hover */}
+                            <SparklesIcon className="absolute right-3 w-4 h-4 text-blue-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </>
                     )}
-
-                    <Squares2X2Icon className={`
-                        w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
-                        ${({ isActive }) => isActive ? 'text-blue-500' : ''}
-                    `} />
-
-                    <span className="font-medium relative z-10">Dashboard</span>
-
-                    {/* Sparkle effect on hover */}
-                    <SparklesIcon className="absolute right-3 w-4 h-4 text-blue-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </NavLink>
 
                 {isLoading && (
@@ -192,11 +238,11 @@ const Sidebar = ({ closeSidebar }) => {
                     </div>
                 )}
 
-                {data?.domains?.map((domain, index) => {
+                {visibleDomains.map((domain) => {
                     const { Icon, gradient } = getDomainIcon(domain.domain_name);
                     const isExpanded = expandedDomains[domain.domainId];
                     const isHovered = hoveredDomain === domain.domainId;
-                    const cleanDomainName = domain.domain_name?.trim().toLowerCase() || 'domain';
+                    const cleanDomainName = domain.domain_name?.trim().toLowerCase().replace(/\s+/g, '-') || 'domain';
 
                     return (
                         <div key={domain.domainId} className="flex flex-col gap-1">
@@ -299,6 +345,30 @@ const Sidebar = ({ closeSidebar }) => {
                         </div>
                     );
                 })}
+
+                {adminLinks.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col gap-1">
+                        <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Administration
+                        </p>
+                        {adminLinks.map(({ path, label, icon: LinkIcon }) => (
+                            <NavLink
+                                key={path}
+                                to={`/${currentTenant}/${path}`}
+                                onClick={closeSidebar}
+                                className={({ isActive }) => `
+                                    flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200
+                                    ${isActive
+                                        ? 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
+                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'}
+                                `}
+                            >
+                                <LinkIcon className="w-5 h-5" />
+                                <span className="font-medium text-sm">{label}</span>
+                            </NavLink>
+                        ))}
+                    </div>
+                )}
             </nav>
 
             {/* Settings Footer with Modern Design */}
@@ -306,24 +376,38 @@ const Sidebar = ({ closeSidebar }) => {
                 {/* Decorative gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 to-transparent"></div>
 
-                <button className="
-                    group relative flex items-center gap-3 px-4 py-3 w-full rounded-xl 
-                    text-slate-600 dark:text-slate-400 
-                    hover:text-slate-900 dark:hover:text-white
-                    transition-all duration-300 overflow-hidden
-                ">
-                    {/* Animated background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                {/* Active Plan Widget */}
+                {activePlanName && (
+                    <div className="relative mb-3 p-3 rounded-2xl bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-indigo-500/10 border border-violet-200/60 dark:border-violet-500/30">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-violet-700 dark:text-violet-300 flex items-center gap-1">
+                                <SparklesIcon className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+                                Current Plan
+                            </span>
+                            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                Active
+                            </span>
+                        </div>
+                        <div className="text-xs font-bold text-slate-800 dark:text-white truncate">
+                            {activePlanName}
+                        </div>
+                        <Link
+                            to={`/${currentTenant}/pricing`}
+                            onClick={closeSidebar}
+                            className="mt-2 text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 flex items-center justify-between group"
+                        >
+                            <span>Manage Plan</span>
+                            <ChevronRightIcon className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                    </div>
+                )}
 
-                    <Cog6ToothIcon className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-500" />
-
-                    <span className="font-medium relative z-10">Settings</span>
-
-                    {/* Shortcut hint */}
-                    <span className="absolute right-3 text-xs text-slate-400 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-500 transition-colors">
-                        ⌘,
-                    </span>
-                </button>
+                <div className="relative px-2 py-1">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{user?.name || user?.email}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {user?.type === 'TENANT' ? 'Organisation admin' : user?.role || 'No role assigned'}
+                    </p>
+                </div>
 
                 {/* Version info */}
                 <div className="mt-3 px-4 text-xs text-slate-400 dark:text-slate-600 flex items-center gap-2">

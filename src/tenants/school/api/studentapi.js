@@ -6,14 +6,14 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Get Students
         getStudents: builder.query({
             query: (tenantName) =>
-                `/tenant/${tenantName}/students`,
+                `/tenant/${tenantName}/students/list`,
             providesTags: ['Students'],
         }),
 
         // ✅ Get Student Details
         getStudentDetails: builder.query({
             query: ({ tenantName, id }) =>
-                `/tenant/${tenantName}/students/${id}`,
+                `/tenant/${tenantName}/students/details/${id}`,
             providesTags: ['Students'],
         }),
 
@@ -27,7 +27,7 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Create Student
         createStudent: builder.mutation({
             query: ({ tenantName, data }) => ({
-                url: `/tenant/${tenantName}/students`,
+                url: `/tenant/${tenantName}/students/create`,
                 method: 'POST',
                 body: {
                     // Basic Information (matching API response structure)
@@ -58,7 +58,7 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Update Student
         updateStudent: builder.mutation({
             query: ({ tenantName, id, data }) => ({
-                url: `/tenant/${tenantName}/students/${id}`,
+                url: `/tenant/${tenantName}/students/update/${id}`,
                 method: 'PUT',
                 body: {
                     // Basic Information (matching API response structure)
@@ -89,7 +89,7 @@ export const studentApi = apiSlice.injectEndpoints({
         // ✅ Delete Student
         deleteStudent: builder.mutation({
             query: ({ tenantName, id }) => ({
-                url: `/tenant/${tenantName}/students/${id}`,
+                url: `/tenant/${tenantName}/students/delete/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Students'],

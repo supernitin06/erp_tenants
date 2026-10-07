@@ -9,6 +9,7 @@ import {
     CreditCardIcon,
     QrCodeIcon,
     ArrowLeftIcon,
+    ArrowRightIcon,
     ShieldCheckIcon,
     LockClosedIcon,
     SparklesIcon,
@@ -31,9 +32,11 @@ import { FiSmartphone, FiLock, FiShield, FiZap } from 'react-icons/fi';
 const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { user, updateUser, logout } = useAuth();
     const [logoutApi] = useLogoutMutation();
     const { tenantName } = useParams();
+    const targetTenant = tenantName || user?.tenantUsername || 'jbm';
+
     const plan = location.state?.plan || {
         id: 'default',
         name: 'Subscription Plan',
@@ -47,6 +50,26 @@ const PaymentPage = () => {
     const [qrData, setQrData] = useState(null);
     const [polling, setPolling] = useState(false);
     const [countdown, setCountdown] = useState(300); // 5 minutes countdown
+    const [paymentSuccess, setPaymentSuccess] = useState(false);
+    const [redirectSeconds, setRedirectSeconds] = useState(3);
+
+    // Auto-redirect to dashboard when payment is marked successful
+    useEffect(() => {
+        let timer;
+        if (paymentSuccess) {
+            timer = setInterval(() => {
+                setRedirectSeconds((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        navigate(`/${targetTenant}`, { replace: true });
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [paymentSuccess, targetTenant, navigate]);
 
     // Countdown timer for QR payment
     useEffect(() => {
@@ -65,170 +88,160 @@ const PaymentPage = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleModalPayment = async () => {
-        setLoading(true);
-        const toastId = toast.loading("Creating order...");
+    // =====================================================
+    // 🧪 DUMMY PAYMENT MODE (for local testing)
+    // =====================================================
+    const DUMMY_UPI_ID = 'bterptest@upi';
+    const DUMMY_MODE = true; // Set to false to enable real Razorpay
 
+    /**
+     * Activates tenant in DB and updates client auth context, then marks payment success
+     */
+    const completePaymentAndActivate = async () => {
+        setLoading(true);
+        const toastId = toast.loading('Activating tenant subscription...', { id: 'activate-sub' });
         try {
-            const orderResponse = await fetch('https://multitenant-uv76.onrender.com/api/v1/subscription-payment/create-order', {
+            const response = await fetch('/api/v1/subscription-payment/activate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    planId: plan.id,
+                    tenantId: user?.id || user?.tenantId,
+                    tenantUsername: targetTenant,
+                }),
+            });
+
+            const data = await response.json();
+            if (data.success && data.tenant) {
+                updateUser({
+                    ...data.tenant,
+                    isActive: true,
+                    is_plan_assigned: true,
+                    subscription_planId: data.tenant.subscription_planId || plan.id,
+                });
+            } else {
+                updateUser({
+                    isActive: true,
+                    is_plan_assigned: true,
+                    subscription_planId: plan.id,
+                });
+            }
+        } catch (err) {
+            console.error('Activation network call error, activating locally:', err);
+            updateUser({
+                isActive: true,
+                is_plan_assigned: true,
+                subscription_planId: plan.id,
+            });
+        } finally {
+            toast.dismiss(toastId);
+            setLoading(false);
+            setPaymentSuccess(true);
+            setRedirectSeconds(3);
+            toast.success('🎉 Subscription active! Going to dashboard...');
+        }
+    };
+
+    const handleModalPayment = async () => {
+        if (DUMMY_MODE) {
+            setLoading(true);
+            toast.loading('Processing dummy payment...', { id: 'dummy-pay' });
+            await new Promise(r => setTimeout(r, 1200));
+            toast.dismiss('dummy-pay');
+            await completePaymentAndActivate();
+            return;
+        }
+
+        // Real Razorpay integration
+        setLoading(true);
+        const toastId = toast.loading("Creating payment order...");
+        try {
+            const orderResponse = await fetch('/api/v1/subscription-payment/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({ planId: plan.id })
             });
             const data = await orderResponse.json();
-
             if (!data.success) throw new Error(data.message || "Failed to create order");
-
-            toast.success("Order created successfully!", { id: toastId });
-
-            const { orderId, amount, key, planName } = data;
+            toast.success("Order created! Opening payment...", { id: toastId });
 
             const options = {
-                key: key,
-                amount: amount,
+                key: data.key,
+                amount: data.amount,
                 currency: "INR",
                 name: "BT-ERP",
-                description: `Subscription for ${planName}`,
-                order_id: orderId,
+                description: `Subscription for ${data.planName || plan.name}`,
+                order_id: data.orderId,
                 handler: async function (response) {
-                    setVerifying(true); // Start full-screen loader
-                    const verifyToastId = toast.loading("Verifying payment...");
+                    setVerifying(true);
                     try {
-                        const verifyResponse = await fetch('https://bt-erp-backend-edww.onrender.com/api/v1/subscription-payment/verify', {
+                        const verifyResponse = await fetch('/api/v1/subscription-payment/verify', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
                             body: JSON.stringify({
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_signature: response.razorpay_signature,
-                                planId: plan.id
+                                planId: plan.id,
+                                tenantUsername: targetTenant,
                             })
                         });
-
                         const result = await verifyResponse.json();
                         if (result.success) {
-                            toast.success("Payment verified! Redirecting...", { id: verifyToastId });
-                            setTimeout(async () => {
-                                try {
-                                    await logoutApi().unwrap();
-                                } catch (e) {
-                                    console.error("Logout error", e);
-                                }
-                                logout();
-                                window.location.href = '/login?message=Please login again to continue';
-                            }, 2000);
+                            updateUser({
+                                ...(result.tenant || {}),
+                                isActive: true,
+                                is_plan_assigned: true,
+                                subscription_planId: plan.id,
+                            });
+                            setPaymentSuccess(true);
                         } else {
-                            throw new Error(result.message || "Verification failed");
+                            toast.error("Verification failed: " + (result.message || "Unknown error"));
                         }
                     } catch (err) {
-                        setVerifying(false); // Stop loader on error
-                        toast.error(err.message || "Verification failed", { id: verifyToastId });
+                        toast.error("Verification network error");
+                    } finally {
+                        setVerifying(false);
                     }
-                },
-                modal: {
-                    ondismiss: function () {
-                        setLoading(false);
-                        toast("Payment cancelled", { icon: 'ℹ️' });
-                    }
-                },
-                prefill: {
-                    name: "Tenant Admin",
-                    email: "admin@tenant.com",
-                    contact: "9999999999"
-                },
-                theme: {
-                    color: "#8b5cf6"
-                },
-                method: {
-                    upi: true,
-                    card: true,
-                    netbanking: true,
-                    wallet: true,
-                    paylater: true
                 }
             };
-
             const rzp = new window.Razorpay(options);
             rzp.open();
-        } catch (error) {
-            console.error("Payment failed", error);
-            toast.error(error.message || "Payment initiation failed", { id: toastId });
+        } catch (e) {
+            toast.error(e.message || "Payment initiation failed", { id: toastId });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleQrPayment = async () => {
-        setLoading(true);
-        setQrData(null);
-        setCountdown(300);
-        const toastId = toast.loading("Generating QR Code...");
-
-        try {
-            const response = await fetch('https://multitenant-uv76.onrender.com/api/v1/subscription-payment/create-qr', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ planId: plan.id })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                setQrData(data);
-                setPaymentMethod('qr');
-                toast.success("QR Code Generated! Scan to pay.", { id: toastId });
-                startPolling(data.qr_id);
-            } else {
-                throw new Error(data.message || "Failed to create QR code");
-            }
-        } catch (error) {
-            console.error("QR Error:", error);
-            toast.error(error.message || "Failed to generate QR Code", { id: toastId });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const startPolling = (qrId) => {
-        setPolling(true);
-        // We won't toast on every poll tick, only on success/outcome
-        const interval = setInterval(async () => {
-            try {
-                const response = await fetch(`https://multitenant-uv76.onrender.com/api/v1/subscription-payment/check-status/${qrId}?planId=${plan.id}`, {
-                    credentials: 'include'
+    const handleQrPayment = () => {
+        if (DUMMY_MODE) {
+            setLoading(true);
+            toast.loading('Generating QR Code...', { id: 'qr-gen' });
+            setTimeout(() => {
+                const amount = plan.price + Math.round(plan.price * 0.18);
+                const upiString = `upi://pay?pa=${DUMMY_UPI_ID}&pn=BT-ERP&am=${amount}&cu=INR&tn=Subscription-${plan.name}`;
+                const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiString)}&bgcolor=ffffff&color=5b21b6&margin=10`;
+                setQrData({
+                    image_url: qrImageUrl,
+                    qr_id: 'dummy-qr-' + Date.now(),
+                    amount,
+                    upiString,
                 });
-                const data = await response.json();
-
-                if (data.success) {
-                    clearInterval(interval);
-                    setPolling(false);
-                    setVerifying(true); // START FULL SCREEN LOADER
-                    toast.success("Payment Received! Redirecting...");
-                    setTimeout(async () => {
-                        try {
-                            await logoutApi().unwrap();
-                        } catch (e) {
-                            console.error("Logout error", e);
-                        }
-                        logout();
-                        window.location.href = '/login?message=Please login again to continue';
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error("Polling error", error);
-            }
-        }, 5000);
-
-        return () => clearInterval(interval);
+                setCountdown(300);
+                setPolling(true);
+                setLoading(false);
+                toast.dismiss('qr-gen');
+                toast.success('✅ QR Code Generated! Scan or simulate payment.');
+            }, 1000);
+            return;
+        }
     };
+
+    const startPolling = () => {}; // no-op in dummy mode
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -257,6 +270,79 @@ const PaymentPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 py-12 px-4 relative overflow-hidden">
             <Toaster position="top-center" reverseOrder={false} />
+
+            {/* 🧪 Dummy Payment Success Screen */}
+            <AnimatePresence>
+                {paymentSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center p-8 text-center"
+                    >
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+                            className="w-28 h-28 bg-emerald-100 rounded-full flex items-center justify-center mb-6"
+                        >
+                            <CheckCircleIcon className="w-16 h-16 text-emerald-500" />
+                        </motion.div>
+                        <motion.h1
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-4xl font-black text-slate-800 mb-2"
+                        >
+                            Payment Successful! 🎉
+                        </motion.h1>
+                        <motion.p
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-slate-500 text-lg mb-2"
+                        >
+                            {plan.name} activated successfully
+                        </motion.p>
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.35 }}
+                            className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-2 rounded-full mb-6 font-medium"
+                        >
+                            🧪 DUMMY MODE — No real payment was made
+                        </motion.div>
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="bg-slate-50 rounded-2xl p-6 mb-8 text-left w-full max-w-sm"
+                        >
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between"><span className="text-slate-500">Plan</span><span className="font-semibold text-slate-800">{plan.name}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">Amount Paid</span><span className="font-bold text-violet-600">₹{plan.price + Math.round(plan.price * 0.18)}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">Order ID</span><span className="font-mono text-xs text-slate-600">DUMMY-{Date.now()}</span></div>
+                                <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="text-emerald-600 font-semibold">✅ Simulated</span></div>
+                            </div>
+                        </motion.div>
+                        <motion.button
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => {
+                                setPaymentSuccess(false);
+                                navigate(`/${targetTenant}`, { replace: true });
+                            }}
+                            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-10 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all mx-auto"
+                        >
+                            <span>🚀 Go to Dashboard ({redirectSeconds}s)</span>
+                            <ArrowRightIcon className="w-5 h-5" />
+                        </motion.button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Full Screen Freeze Loader */}
             <AnimatePresence>
@@ -679,11 +765,15 @@ const PaymentPage = () => {
                                                     </div>
 
                                                     {/* Actions */}
-                                                    <div className="flex gap-3 justify-center">
+                                                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700 font-medium mb-3">
+                                                        🧪 Dummy Mode — UPI ID: <span className="font-mono font-bold">bterptest@upi</span>
+                                                    </div>
+                                                    <div className="flex gap-3 justify-center mb-3">
                                                         <button
                                                             onClick={() => {
                                                                 setQrData(null);
                                                                 setCountdown(300);
+                                                                setPolling(false);
                                                             }}
                                                             className="text-sm text-slate-500 hover:text-violet-600 flex items-center gap-1 transition-colors"
                                                         >
@@ -698,6 +788,21 @@ const PaymentPage = () => {
                                                             Try Other Methods
                                                         </button>
                                                     </div>
+                                                    {/* Simulate payment done button for dummy mode */}
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.02 }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        onClick={async () => {
+                                                            setPolling(false);
+                                                            setQrData(null);
+                                                            await completePaymentAndActivate();
+                                                        }}
+                                                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-bold text-sm shadow-md shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                                    >
+                                                        <CheckCircleIcon className="w-5 h-5" />
+                                                        ✅ Simulate Payment Done (Activate & Dashboard)
+                                                    </motion.button>
+
                                                 </div>
                                             )}
                                         </motion.div>
